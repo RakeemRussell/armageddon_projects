@@ -11,7 +11,7 @@ resource "aws_security_group" "sg_resource" {
 ### PUBLIC INBOUND RULES
 resource "aws_vpc_security_group_ingress_rule" "ingress_port_80_rule" {
   security_group_id = aws_security_group.sg_resource.id
-  cidr_ipv4         = aws_vpc.vpc_resource.cidr_block
+  cidr_ipv4         = "0.0.0.0/0"
   from_port         = 80
   ip_protocol       = "tcp"
   to_port           = 80
@@ -19,7 +19,7 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_port_80_rule" {
 
 resource "aws_vpc_security_group_ingress_rule" "ingress_port_22_rule" {
   security_group_id = aws_security_group.sg_resource.id
-  cidr_ipv4         = aws_vpc.vpc_resource.cidr_block
+  cidr_ipv4         = "0.0.0.0/0"
   from_port         = 22
   ip_protocol       = "tcp"
   to_port           = 22

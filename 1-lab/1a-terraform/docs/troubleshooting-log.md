@@ -10,7 +10,7 @@ KeyError: 'host'
 
 ![Architecture Diagram](../screenshots/troubleshooting/sg12.png)
 
-Failed because the secret format is different than what the user-data code expects that comes from user-data script
+Flask application expected the secret to include connection information that was not in the RDS secret.
 
 application expects: host, username, password, port
 
@@ -317,7 +317,7 @@ to identify the exact Python exceptions.
 
 Lesson Learned
 
-Linux service logs are often the fastest way to diagnose application failures on EC2.
+Infrastructure issues and application issues produce similar symptoms. Read the application logs before changing cloud resources.
 
 ---
 
@@ -353,7 +353,8 @@ The RDS instance referenced a database parameter group that did not exist
 
 Solution
 ![Architecture Diagram](../screenshots/troubleshooting/sg4.png)
-Created a db subnet group in the RDS  resource
+
+Created a DB Subnet Group using private subnets and referenced it in the RDS resource.
 
 Used:
 
@@ -365,37 +366,13 @@ AWS will reject the configuration if only one subnet is configured, because the 
 
 ---
 
-## INIT URL Timed Out
+## Overall Lessons Learned
 
-Problem
+This project reinforced several important cloud engineering concepts:
 
-![Architecture Diagram](../screenshots/troubleshooting/sg7.png)
-
-Solution
-
-Used:
-
-Lesson Learned
----
-
-##
-
-Problem
-
-Solution
-
-Used:
-
-Lesson Learned
----
-
-##
-
-Problem
-
-Solution
-
-Used:
-
-Lesson Learned
----
+- Read application logs before modifying infrastructure
+- Verify IAM identity before modifying IAM permissions
+- Keep Terraform infrastructure and application configuration the same
+- Using secrets manager instead of hardcoded credentials is best practice
+- Pass dynamic infrastructure values into applications using Terraform templates instead of hardcoding values
+- Troubleshoot one layer of the architecture at a time instead of changing multiple components at the same time

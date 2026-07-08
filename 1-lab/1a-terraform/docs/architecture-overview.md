@@ -1,6 +1,6 @@
 # Architecture Overview
 
-![Architecture Diagram](../diagrams/architecture-diagram.png)
+![Architecture Diagram](./diagrams/architecture-diagram.png)
 
 ## Solution Architecture
 

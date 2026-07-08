@@ -43,6 +43,8 @@ The /add endpoint failed after /init succeeded.
 
 Cause
 
+![Architecture Diagram](../screenshots/troubleshooting/sg14.png)
+![Architecture Diagram](../screenshots/troubleshooting/sg16.png)
 Terraform created:
 
 notes_db
@@ -53,6 +55,8 @@ labdb
 
 Solution
 
+![Architecture Diagram](../screenshots/troubleshooting/sg15.png)
+![Architecture Diagram](../screenshots/troubleshooting/sg17.png)
 Standardized both Terraform and the application to use:
 
 notes_db

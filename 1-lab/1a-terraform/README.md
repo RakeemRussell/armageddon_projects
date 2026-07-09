@@ -66,19 +66,19 @@ The infrastructure follows AWS security best practices by isolating the database
 
 ## Application Endpoints
 
-Initialize the database
+`Initialize the database`
 
 ```b
 http://<EC2_PUBLIC_IP>/init
 ```
 
-Insert a note
+`Insert a note`
 
 ```b
 http://<EC2_PUBLIC_IP>/add?note=first_note
 ```
 
-Display stored notes
+`Display stored notes`
 
 ```b
 http://<EC2_PUBLIC_IP>/list
@@ -111,44 +111,50 @@ Additional project documentation can be found in the **docs** directory.
 
 ### Terraform Deployment
 
+`Terraform validate`  
 ![Architecture Diagram](screenshots/troubleshooting/sg19.png)
 
+`Terraform plan`
 ![Architecture Diagram](screenshots/troubleshooting/sg20.png)
 ![Architecture Diagram](screenshots/troubleshooting/sg21.png)
 
+`Terraform apply -auto-approve`
 ![Architecture Diagram](screenshots/troubleshooting/sg22.png)
 ![Architecture Diagram](screenshots/troubleshooting/sg23.png)
 
+`Terraform destroy -auto-approve`  
 ![Architecture Diagram](screenshots/troubleshooting/sg24.png)
 ![Architecture Diagram](screenshots/troubleshooting/sg35.png)
 
 ### AWS Infrastructure
 
+`VPC`  
 ![Architecture Diagram](screenshots/troubleshooting/sg25.png)
 
+`SUBNETS`  
 ![Architecture Diagram](screenshots/troubleshooting/sg26.png)
-
+`SECURITY GROUPS`  
 ![Architecture Diagram](screenshots/troubleshooting/sg27.png)
-
+`EC2 INSTANCES`  
 ![Architecture Diagram](screenshots/troubleshooting/sg28.png)
-
+`DATABASES`  
 ![Architecture Diagram](screenshots/troubleshooting/sg29.png)
 
-Roles
+`EC2 IAM ROLES`
 ![Architecture Diagram](screenshots/troubleshooting/sg30.png)
 
-Policies
+`EC2 IAM POLICIES`
 ![Architecture Diagram](screenshots/troubleshooting/sg31.png)
 
 ### Application End-Points
 
-Database initialization  
+`Database initialization`  
 ![Architecture Diagram](screenshots/troubleshooting/sg32.png)
 
-Insert note  
+`Insert note`  
 ![Architecture Diagram](screenshots/troubleshooting/sg33.png)
 
-List notes  
+`List notes`  
 ![Architecture Diagram](screenshots/troubleshooting/sg34.png)
 
 ---

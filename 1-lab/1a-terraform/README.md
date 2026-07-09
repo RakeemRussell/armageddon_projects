@@ -14,32 +14,6 @@ The infrastructure follows AWS security best practices by isolating the database
 
 ![Architecture Diagram](docs/diagrams/architecture-diagram.png)
 
-```b
-User
-    │
-    ▼
-Internet
-    │
-    ▼
-Internet Gateway
-    │
-    ▼
-Public Subnet
-    │
-    ▼
-EC2 (Flask Application)
-    │
-    ├── IAM Role
-    │
-    ├── AWS Secrets Manager
-    │
-    ▼
-Private Subnet
-    │
-    ▼
-Amazon RDS MySQL
-```
-
 ---
 
 ## Features
@@ -125,7 +99,7 @@ Additional project documentation can be found in the **docs** directory.
 | Document                   | Description                                                              |
 |----------------------------|--------------------------------------------------------------------------|
 | `project-summary.md`       | Project objectives, AWS services used, workflow, and skills demonstrated |
-| `architecture-overview.md` | Eexplanation of the AWS architecture and security model                  |
+| `architecture-overview.md` | Explanation of the AWS architecture and security model                  |
 | `deployment-notes.md`      | Deployment steps, application endpoints, and cleanup instructions        |
 | `troubleshooting-log.md`   | Issues encountered during development and their resolutions              |
 | `lessons-learned.md`       | Engineering principles and key takeaways from the project                |
@@ -135,17 +109,47 @@ Additional project documentation can be found in the **docs** directory.
 
 ## Screenshots
 
-### AWS Infrastructure
-
-> *(Add screenshots here)*
-
 ### Terraform Deployment
 
-> *(Add screenshots here)*
+![Architecture Diagram](screenshots/troubleshooting/sg19.png)
 
-### Application
+![Architecture Diagram](screenshots/troubleshooting/sg20.png)
+![Architecture Diagram](screenshots/troubleshooting/sg21.png)
 
-> *(Add screenshots here)*
+![Architecture Diagram](screenshots/troubleshooting/sg22.png)
+![Architecture Diagram](screenshots/troubleshooting/sg23.png)
+
+![Architecture Diagram](screenshots/troubleshooting/sg24.png)
+![Architecture Diagram](screenshots/troubleshooting/sg35.png)
+
+### AWS Infrastructure
+
+![Architecture Diagram](screenshots/troubleshooting/sg25.png)
+
+![Architecture Diagram](screenshots/troubleshooting/sg26.png)
+
+![Architecture Diagram](screenshots/troubleshooting/sg27.png)
+
+![Architecture Diagram](screenshots/troubleshooting/sg28.png)
+
+![Architecture Diagram](screenshots/troubleshooting/sg29.png)
+
+Roles
+![Architecture Diagram](screenshots/troubleshooting/sg30.png)
+
+Policies
+![Architecture Diagram](screenshots/troubleshooting/sg31.png)
+
+### Application End-Points
+
+Database initialization  
+![Architecture Diagram](screenshots/troubleshooting/sg32.png)
+
+Insert note  
+![Architecture Diagram](screenshots/troubleshooting/sg33.png)
+
+List notes  
+![Architecture Diagram](screenshots/troubleshooting/sg34.png)
 
 ---
 
@@ -164,18 +168,3 @@ Additional project documentation can be found in the **docs** directory.
 * Infrastructure Debugging
 
 ---
-
-## Future Improvements
-
-* Replace the Flask development server with Gunicorn.
-* Deploy behind an Application Load Balancer.
-* Enable HTTPS using AWS Certificate Manager.
-* Add CloudWatch logging and monitoring.
-* Implement Auto Scaling.
-* Add CI/CD with GitHub Actions.
-
----
-
-## License
-
-This project was created as part of my cloud engineering portfolio to demonstrate practical AWS, Terraform, and Infrastructure as Code skills.

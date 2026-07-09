@@ -10,7 +10,7 @@ The infrastructure follows AWS security best practices by isolating the database
 
 ---
 
-## Architecture
+## Architecture Diagram
 
 ![Architecture Diagram](docs/diagrams/architecture-diagram.png)
 

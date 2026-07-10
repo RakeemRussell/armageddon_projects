@@ -352,6 +352,7 @@ Terraform failed to create the RDS instance with the following error:
 The RDS instance referenced a database parameter group that did not exist
 
 Solution  
+
 ![Architecture Diagram](../screenshots/troubleshooting/sg4.png)
 
 Created a DB Subnet Group using private subnets and referenced it in the RDS resource.

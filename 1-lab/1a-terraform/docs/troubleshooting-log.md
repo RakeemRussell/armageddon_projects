@@ -14,13 +14,13 @@ Flask application expected the secret to include connection information that was
 
 application expects: host, username, password, port
 
-Cause
+Cause  
 ![Architecture Diagram](../screenshots/troubleshooting/sg8.png)
 ![Architecture Diagram](../screenshots/troubleshooting/sg11.png)
 
 The AWS-managed secret only contained the database credentials, not the RDS endpoint.
 
-Solution
+Solution  
 ![Architecture Diagram](../screenshots/troubleshooting/sg9.png)
 ![Architecture Diagram](../screenshots/troubleshooting/sg6.png)
 ![Architecture Diagram](../screenshots/troubleshooting/sg10.png)
@@ -69,7 +69,7 @@ Infrastructure and application configuration must use the same database name con
 
 ## Terraform Provider Version Incompatibility
 
-Problem
+Problem  
 
 terraform init failed because the AWS provider version you specified was no longer compatible.
 
@@ -77,7 +77,7 @@ Cause
 
 The provider version constraint (~> 4.66.1) did not work with your Terraform environment.
 
-Solution
+Solution  
 
 Updated the provider version to:
 

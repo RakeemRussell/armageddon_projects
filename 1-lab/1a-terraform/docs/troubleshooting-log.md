@@ -208,7 +208,7 @@ file()
 
 which only accepts a file path.
 
-Solution
+Solution  
 ![Architecture Diagram](../screenshots/troubleshooting/sg6.png)
 
 Switched to:

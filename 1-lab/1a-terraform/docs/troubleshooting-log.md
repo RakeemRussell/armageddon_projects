@@ -193,7 +193,7 @@ Every subnet in a DB subnet group must belong to the same VPC as the RDS instanc
 
 ## Terraform file() Function Error
 
-Problem
+Problem  
 ![Architecture Diagram](../screenshots/troubleshooting/sg5.png)
 
 Terraform validation failed with:

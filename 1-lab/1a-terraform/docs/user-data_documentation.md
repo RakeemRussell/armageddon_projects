@@ -72,12 +72,6 @@ tells Bash - Take everything I type until you see PY, and write it into the file
 cat >/opt/rdsapp/app.py - means take whatever comes next and save it as app.py
 << called a here-document or heredoc - tells Bash everything after this line belongs to the command until the ending marker
 'PY' is the marker that tells Bash where to stop
-
-Creating app.py  
-This is a here-document
-Instead of copying a file,
-Bash literally writes everything until PY into app.py
-The User Data creates the entire Application
 ```
 
 ## Python Code

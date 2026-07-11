@@ -69,6 +69,8 @@ mkdir stands for Make Directory - it creates a folder
 tells Bash - Take everything I type until you see PY, and write it into the file /opt/rdsapp/app.py
 > symbol called output redirection - it writes to a file
 /opt/rdsapp/app.py - is the destination file
+cat >/opt/rdsapp/app.py - means take whatever comes next and save it as app.py
+<< called a here-document or heredoc - tells Bash everything after this line belongs to the command until the ending marker
 
 
 Creating app.py  

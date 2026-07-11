@@ -21,7 +21,7 @@ updates every installed package
 `dnf install -y python3-pip`
 
 ```s
-installs pip, pip is Python's package manager, without pip "pip3 install flask" would fail
+installs pip, pip is Pythons package manager, without pip "pip3 install flask" would fail
 ```
 
 ---
@@ -56,7 +56,7 @@ Creating app.py
 This is a here-document
 Instead of copying a file,
 Bash literally writes everything until PY into app.py
-The User Data creates the entire Flask application
+The User Data creates the entire Application
 ```
 
 ## Python Code
@@ -289,7 +289,7 @@ over time, can exhaust the maximum number of allowed connections
 
 ```s
 Returns a response
-Flask sends "Initialized labdb + notes table." text back to the browser
+Application sends "Initialized labdb + notes table." text back to the browser
 ```
 
 ---
@@ -345,28 +345,167 @@ Displays notes
 `PY`
 
 ```S
-Run Flask
+Run Application
 Accept connections from anywhere, on port 80
 ```
 
 ---
 ---
 
-cat >/etc/systemd/system/rdsapp.service <<'SERVICE'
-[Unit]
-Description=EC2 to RDS Notes App
-After=network.target
+`cat >/etc/systemd/system/rdsapp.service <<'SERVICE'`
 
-[Service]
-WorkingDirectory=/opt/rdsapp
-Environment=SECRET_ID=lab/rds/mysql
-ExecStart=/usr/bin/python3 /opt/rdsapp/app.py
-Restart=always
+```s
+cat, displays the contents of a file
+>, operator redirects output into a file
+cat >/etc/systemd/system/rdsapp.service, means, take whatever follows and save it into this file
+<<'SERVICE', means, everything until you see the word SERVICE should be treated as the contents of the file
+```
 
-[Install]
-WantedBy=multi-user.target
-SERVICE
+---
+---
 
-systemctl daemon-reload
-systemctl enable rdsapp
-systemctl start rdsapp
+`[Unit]`
+
+```s
+simply the title of the section, named Unit
+```
+
+---
+---
+
+`Description=EC2 to RDS Notes App`
+
+```s
+simply a human-readable description
+It doesnt affect how the service runs, it just helps identify it
+```
+
+---
+---
+
+`After=network.target`
+
+```s
+It tells systemd, do not start this application until the network is available
+If the Application started before networking was ready, it would fail
+Without a network connection retrieving secrets, RDS connection, HTTP requests, tasks would not work
+```
+
+---
+---
+
+`[Service]`
+
+```s
+simply the title of the section, named Service
+```
+
+---
+---
+
+`WorkingDirectory=/opt/rdsapp`
+
+```s
+tells systemd,
+Before starting the application, change into the /opt/rdsapp directory
+
+```
+
+---
+---
+
+`Environment=SECRET_ID=lab/rds/mysql`
+
+```s
+This creates an environment variable
+Before Python starts, Linux creates - SECRET_ID = lab/rds/mysql
+Inside Python code, this line reads it - SECRET_ID = os.environ.get("SECRET_ID", "lab/rds/mysql")
+os.environ is how Python accesses environment variables provided by the operating system
+meaning the service file line and the Python line are connected
+```
+
+---
+---
+
+`ExecStart=/usr/bin/python3 /opt/rdsapp/app.py`
+
+```s
+tells systemd what command to execute to start the service
+/usr/bin/python3, is the Python interpreter
+/opt/rdsapp/app.py, is the Application
+systemd executes this command, Application starts and begins listening on port 80
+because code contains, app.run(host="0.0.0.0", port=80)
+```
+
+---
+---
+
+`Restart=always`
+
+```s
+tells systemd, if the application stops for any reason start it again
+```
+
+---
+---
+
+`[Install]`
+
+```s
+simply the title of the section, named Install
+```
+
+---
+---
+
+`WantedBy=multi-user.target`
+
+```s
+tells systemd, Start this service whenever the system reaches the multi-user.target state
+multi-user.target means,
+-operating system has finished booting
+-Networking is available
+-Multiple users can log in
+-Background services are ready to run
+```
+
+---
+---
+
+`SERVICE`
+
+```s
+Closing marker
+A signal that ends the Bash here-document used to create the service file.
+It is not written into the rdsapp.service file itself
+```
+
+---
+---
+
+`systemctl daemon-reload`
+
+```s
+tells systemd,
+Reload all of the service configuration files because one was added or changed
+Without reloading, systemd doesnt know that services added, exists.
+```
+
+`systemctl enable rdsapp`
+
+```s
+tells Linux, 
+Start this service automatically every time the server boots
+enable does not start the service immediately, only configures it to start on future boots
+```
+
+---
+---
+
+`systemctl start rdsapp`
+
+```s
+starts the service
+It reads the service file and executes - /usr/bin/python3 /opt/rdsapp/app.py
+Application begins listening on port 80
+```

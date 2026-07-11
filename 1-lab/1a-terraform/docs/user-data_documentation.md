@@ -4,7 +4,10 @@
 `#!/bin/bash`  
 
 ```s
-called a shebang, tells Linux to Execute this file using Bash
+called a shebang, 
+#! -> Shebang
+/bin/bash -> Path to the Bash interpreter
+tells Linux which program should interpret and execute the script
 ```
 
 ---
@@ -13,7 +16,10 @@ called a shebang, tells Linux to Execute this file using Bash
 `dnf update -y`
 
 ```s
-updates every installed package
+dnf is Amazon Linux 2023 package manager that installs, updates, removes, and manages software
+update tells dnf,
+Check all installed software packages, compare them to the repos, upgrade anything out of date
+-y flag answers yes to the confirmation prompt
 ```
 
 ---
@@ -21,7 +27,10 @@ updates every installed package
 `dnf install -y python3-pip`
 
 ```s
-installs pip, pip is Pythons package manager, without pip "pip3 install flask" would fail
+dnf is Amazon Linux 2023 package manager that installs, updates, removes, and manages software/
+install tells dnf - install Pythons package manager (pip) on the EC2 instance/
+python3-pip is Pythons package manager/
+-y flag answers yes to the confirmation prompt/
 ```
 
 ---
@@ -29,22 +38,27 @@ installs pip, pip is Pythons package manager, without pip "pip3 install flask" w
 `pip3 install flask pymysql boto3`
 
 ```s
-This installs three libraries.  
-Flask, creates the web server, Instead of Apache or Nginx serving HTML files and Flask lets Python answer web requests.  
-PyMySQL, Allows Python to connect to MySQL, without it Python cannot talk to RDS.  
-boto3, AWS SDK for Python, Lets Python communicate with AWS services, such as ec2, s3, IAM, secrets manager
+pip3 is Pythons package manager/
+pip3 install tells pip - Download these Python libraries from the Python Package Index (PyPI) and install them on this machine/
+pip3 install flask - installs the Flask library so Python programs can use it/
+Flask is a Python web framework, allowing Python to receive HTTP request/
+After installation Python application can import them, for example - (from flask import Flask)/
+pip3 install pymysql - installs PyMySQL/
+PyMySQL is a MySQL database driver for Python - allowing Python to communicate with a MySQL database using SQL queries/
+pip3 install boto3 - installs AWS SDK/
+boto3 is the official AWS SDK for Python - letting Python interact with AWS services through API calls/
 ```
-
-> ~this application uses boto3 to retrieve database credentials.
 
 ---
 ---
 `mkdir -p /opt/rdsapp`
 
 ```s
-Builds application directory  
-Creates /opt/rdsapp
-/opt contains optional software
+Builds application directory
+mkdir stands for Make Directory - it creates a folder
+-p flag creates parent directories if they dont already exist
+/opt is a directory - used for optional or third-party applications that are not part of the operating system itself
+/rdsapp is a directory - used to hold the application
 ```
 
 ---
@@ -52,6 +66,11 @@ Creates /opt/rdsapp
 `cat >/opt/rdsapp/app.py <<'PY'`
 
 ```s
+tells Bash - Take everything I type until you see PY, and write it into the file /opt/rdsapp/app.py
+> symbol called output redirection - it writes to a file
+/opt/rdsapp/app.py - is the destination file
+
+
 Creating app.py  
 This is a here-document
 Instead of copying a file,

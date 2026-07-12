@@ -9,7 +9,7 @@
     - Screenshot(2) of: EC2 role attached
     ![alt text](../screenshots/iam/deliverable-ec2_role(2).png)
 
-    - Screenshot of: /list output showing at least 3 notes
+    - Screenshot of: /list output showing at least 3 notes  
     ![end_point](../screenshots/endpoint/deliverable-list_output.png)
 
 2.  
@@ -34,10 +34,10 @@
     - aws iam list-attached-role-policies
     ![role-cli-output](../screenshots/iam/deliverable-ec2_cli_output.png)
 
-Answer: Response
-Why each rule exists
-What would break if removed
-Why broader access is forbidden
-Why this role exists
-Why it can read this secret
+Answer: Response  
+Why each rule exists  
+What would break if removed  
+Why broader access is forbidden  
+Why this role exists  
+Why it can read this secret  
 Why it cannot read others

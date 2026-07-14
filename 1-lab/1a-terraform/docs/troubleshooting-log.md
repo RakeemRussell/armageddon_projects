@@ -4,13 +4,13 @@ Problem
 
 ![Architecture Diagram](../screenshots/troubleshooting/sg7.png)
 
-The application crashed with:
+using journalctl -u rdsapp -n 100 --no-pager, the application crashed with:
 
 KeyError: 'host'
 
 ![Architecture Diagram](../screenshots/troubleshooting/sg12.png)
 
-Flask application expected the secret to include connection information that was not in the RDS secret.
+application expected the secret to include connection information that was not in the RDS secret.
 
 application expects: host, username, password, port
 
@@ -26,6 +26,8 @@ Solution
 ![Architecture Diagram](../screenshots/troubleshooting/sg10.png)
 
 Passed the RDS endpoint, database name, and port separately through environment variables.
+
+The templatefile() function allows Terraform to inject infrastructure values into the EC2 User Data script before the instance is launched
 
 Lesson Learned
 
@@ -228,7 +230,7 @@ templatefile() reads a file and performs variable substitution.
 
 Problem
 
-Flask returned:
+application returned:
 
 500 Internal Server Error
 

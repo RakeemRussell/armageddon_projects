@@ -83,8 +83,8 @@ cat >/opt/rdsapp/app.py - means take whatever comes next and save it as app.py
 `import json`
 
 ```s
-Converts JSON into Python dictionaries
-Secrets Manager returns JSON
+The json module allows the Python application to work with JSON (JavaScript Object Notation) data
+AWS Secrets Manager returns the secret as a JSON-formatted string. The application uses the json module to convert that string into a Python dictionary so the individual values (such as username, password, and host) can be accessed
 ```
 
 ---
@@ -92,7 +92,7 @@ Secrets Manager returns JSON
 `import os`
 
 ```s
-Reads environment variables, such as SECRET_ID
+The os module allows the Python application to interact with the operating system. In this project, it is used to read environment variables that contain configuration values such as the AWS Region, Secrets Manager secret name, RDS endpoint, database name, and database port.
 ```
 
 ---
@@ -100,8 +100,9 @@ Reads environment variables, such as SECRET_ID
 `import boto3`
 
 ```s
-AWS SDK
-Used to talk to Secrets Manager.
+It simply imports the AWS SDK (Software Development Kit) for Python so the application can communicate with AWS services
+The application needs to interact with AWS Secrets Manager to retrieve the database credentials before it can connect to the RDS database.
+The boto3 library provides the Python functions needed to make AWS API calls.
 ```
 
 ---
@@ -109,7 +110,9 @@ Used to talk to Secrets Manager.
 `import pymysql`
 
 ```s
-Connects to MySQL
+pymysql is a Python library that allows the application to communicate with a MySQL database using the MySQL protocol
+Amazon RDS is running MySQL, so the application needs a MySQL client library to Open a connection to the RDS instance, Send SQL queries, Insert data, Retrieve data and Close the connection
+Without pymysql, Python has no built-in ability to talk to a MySQL database
 ```
 
 ---
@@ -117,7 +120,9 @@ Connects to MySQL
 `from flask import Flask, request`
 
 ```s
-Creates the website and lets users send data
+The Flask class is imported so the application can create a Flask web application
+Later in the code, this line uses it: app = Flask(__name__)
+This creates the web server that listens for HTTP requests and routes them to the correct functions
 ```
 
 ---
@@ -125,7 +130,10 @@ Creates the website and lets users send data
 `REGION = os.environ.get("AWS_REGION", "us-east-1")`
 
 ```s
-Reads AWS_REGION, If none exists, defaults to us-east-1
+This rule determines which AWS Region the application uses when communicating with AWS services, such as Secrets Manager
+It first checks whether an environment variable named AWS_REGION exists.
+If it exists, the application uses that value.
+If it does not exist, the application defaults to us-east-1.
 ```
 
 ---
@@ -133,7 +141,13 @@ Reads AWS_REGION, If none exists, defaults to us-east-1
 `SECRET_ID = os.environ.get("SECRET_ID", "lab/rds/mysql")`
 
 ```s
-Use environment variable, otherwise use lab/rds/mysql
+creates a Python variable called SECRET_ID
+tells the application:
+Check if an environment variable named SECRET_ID exists.
+If it exists, use that value.
+If it does not exist, use the default value: lab/rds/mysql
+The application later uses this value here: secrets.get_secret_value(SecretId=SECRET_ID)
+which tells AWS Secrets Manager which secret to retrieve.
 ```
 
 ---
@@ -141,7 +155,9 @@ Use environment variable, otherwise use lab/rds/mysql
 `secrets = boto3.client("secretsmanager", region_name=REGION)`
 
 ```s
-Creates a client object, Later this client calls, get_secret_value()
+creates the AWS SDK client that allows the Python application to communicate with the Secrets Manager API
+The application needs this client because the database credentials are not stored in the application code
+Instead, they are retrieved securely from AWS Secrets Manager at runtime
 ```
 
 ---
@@ -152,9 +168,37 @@ Creates a client object, Later this client calls, get_secret_value()
     # When you use "Credentials for RDS database", AWS usually stores:  
     # username, password, host, port, dbname (sometimes)  
     `return s`
+> updated code block to the one below to pass the rds endpoint, database name, and port separately through environment variables
 
 ```s
-This function retrieves credentials
+def get_db_creds():
+    resp = secrets.get_secret_value(SecretId=SECRET_ID)
+    s = json.loads(resp["SecretString"])
+
+    s["host"] = os.environ.get("DB_HOST")
+    s["port"] = os.environ.get("DB_PORT", 3306)
+    s["dbname"] = os.environ.get("DB_NAME", "notes_db")
+    return s
+```
+
+```s
+resp = secrets.get_secret_value(SecretId=SECRET_ID)
+- This retrieves the database credentials stored in AWS Secrets Manager, Instead of hardcoding the username and password into the application, the application requests them at runtime
+
+s = json.loads(resp["SecretString"])
+- Secrets Manager returns the secret as a JSON-formatted string
+
+s["host"] = os.environ.get("DB_HOST")
+- Terraform knows the RDS endpoint after creating the database, then injects the endpoint as an environment variable
+
+s["port"] = os.environ.get("DB_PORT", 3306)
+- The application needs to know which TCP port MySQL is listening on, it defaults to 3306 the standard MySQL port if terraform does not provide one
+
+s["dbname"] = os.environ.get("DB_NAME", "notes_db")
+- The application needs to know which database to connect to after authenticating terraform then injects the database name
+
+return s
+- returns the dictionary containing all of the information needed to connect to the database such as username, password,host, port, database name
 ```
 
 ---
@@ -168,9 +212,37 @@ This function retrieves credentials
     `db = c.get("dbname", "labdb")` # we'll create this if it doesn't exist  
     `return pymysql.connect(host=host, user=user, password=password, port=port, database=db, autocommit=True)`
 
+> updated to code block below
+
+def get_conn():  
+    c = get_db_creds()  
+    host = c["host"]  
+    user = c["username"]  
+    password = c["password"]  
+    port = int(c.get("port", 3306))  
+    db = c.get("dbname", "notes_db")  
+    return pymysql.connect(host=host, user=user, password=password, port=port, database=db, autocommit=True)
+
 ```s
-Creates a database connection,
-Retrieve credentials-> Extract host-> Extract username-> Extract password-> Connect to MySQL-> Return connection object
+c = get_db_creds()
+- retrieves the database credentials from the get_db_creds() function
+
+host = c["host"]
+- identifies the RDS endpoint.
+
+user = c["username"]
+- specifies which database account will authenticate.
+
+password = c["password"]
+- authenticates the database user.
+
+port = int(c.get("port", 3306))
+- identifies which network port MySQL is listening on, application attempts to read the port from the secret. If no port exists, it defaults to 3306 MySQLs standard listening port
+
+db = c.get("dbname", "notes_db")
+- specifies which database to connect to after authentication.
+return pymysql.connect(
+- creates the network connection from the application to the Amazon RDS MySQL database using the previously retrieved connection parameters
 ```
 
 ---
@@ -178,7 +250,13 @@ Retrieve credentials-> Extract host-> Extract username-> Extract password-> Conn
 `app = Flask(__name__)`
 
 ```s
-Creates the web application.
+creates an instance of the Flask web application
+The Flask object is the core application container that:
+stores routes (/add, /list)
+manages HTTP requests and responses
+connects URLs to Python functions
+handles application configuration
+Without creating this object, Flask would not know that this Python file is a web application
 ```
 
 ---
@@ -192,8 +270,18 @@ Creates the web application.
     `"""`
 
 ```s
-Homepage
-Returns HTML.
+@app.route("/")
+- creates a URL endpoint in the application
+
+def home():
+- This function is the logic that executes when the / route receives a request, The function provides the behavior for the endpoint.
+
+return """
+<h2>EC2 → RDS Notes App</h2>
+<p>POST /add?note=hello</p>
+<p>GET /list</p>
+"""
+- creates the HTTP response sent back to the browser and displays it as a webpage.
 ```
 
 ---
@@ -207,9 +295,29 @@ Returns HTML.
     `port = int(c.get("port", 3306))`
 
 ```s
-Creates the database
-Creates the table
-This endpoint is only needed once
+@app.route("/init")
+- creates an HTTP endpoint called /init
+- this endpoint is to initialize the database environment by retrieving credentials and preparing the database
+
+def init_db():
+- defines the Python function that contains the database initialization logic
+- the application executes this function whenever /init receives a request.
+
+c = get_db_creds()
+- retrieves the database credentials from AWS Secrets Manager
+
+host = c["host"]
+- retrieves the RDS endpoint from the credentials dictionary
+-The application needs the database address to know where MySQL is running
+
+user = c["username"]
+- Retrieves the MySQL username needed for authentication
+
+password = c["password"]
+- Retrieves the database password from Secrets Manager
+
+port = int(c.get("port", 3306))
+- Retrieves the database port, If no port exists in the secret, it defaults to 3306
 ```
 
 ---
@@ -431,12 +539,31 @@ Before starting the application, change into the /opt/rdsapp directory
 
 `Environment=SECRET_ID=lab/rds/mysql`
 
+> changed Environment=SECRET_ID=lab/rds/mysql to the code block below
+
+WorkingDirectory=/opt/rdsapp  
+Environment=SECRET_ID=${secret_id}  
+Environment=DB_HOST=${db_host}  
+Environment=DB_NAME=${db_name}  
+Environment=DB_PORT=3306  
+ExecStart=/usr/bin/python3 /opt/rdsapp/app.py
+Restart=always
+
 ```s
-This creates an environment variable
-Before Python starts, Linux creates - SECRET_ID = lab/rds/mysql
-Inside Python code, this line reads it - SECRET_ID = os.environ.get("SECRET_ID", "lab/rds/mysql")
-os.environ is how Python accesses environment variables provided by the operating system
-meaning the service file line and the Python line are connected
+WorkingDirectory=/opt/rdsapp
+- tells systemd which directory to switch to before starting the application
+Environment=SECRET_ID=${secret_id}
+- passes the Secrets Manager secret name from Terraform into the application
+Environment=DB_HOST=${db_host}
+- Terraform injects the RDS endpoint into the application during deployment
+Environment=DB_NAME=${db_name}
+- tells the application which database inside MySQL it should use
+Environment=DB_PORT=3306
+- tells the application which TCP port database is listening on
+ExecStart=/usr/bin/python3 /opt/rdsapp/app.py
+- tells systemd which command to execute when starting the service
+Restart=always
+- tells systemd to automatically restart the application if it crashes or exits unexpectedly
 ```
 
 ---

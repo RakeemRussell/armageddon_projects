@@ -257,7 +257,7 @@ Instead of allowing access to every secret, the application can retrieve only th
 2. What would break if removed
 
 Under Rule 1)
-The EC2 instance would launch successfully, but it could not assume the IAM role. The Flask application would have no AWS credentials and every call to Secrets Manager would fail with an authentication or authorization error.
+The EC2 instance would launch successfully, but it could not assume the IAM role. The application would have no AWS credentials and every call to Secrets Manager would fail with an authentication or authorization error.
 
 Under Rule 2)
 Without the username and password, the application could not connect to RDS. The /init, /add, and /list endpoints would all fail
@@ -327,7 +327,7 @@ aws_iam_role_policy_attachment
 Connects the IAM policy to the IAM role. Without this attachment, the role would have no permissions even though both the role and policy exist.
 
 aws_iam_instance_profile
-Allows the EC2 instance to use the IAM role. EC2 cannot attach an IAM role directly; it must use an Instance Profile. The Instance Profile itself does not grant any permissions—it simply makes the role available to the EC2 instance.
+Allows the EC2 instance to use the IAM role. EC2 cannot attach an IAM role directly it must use an Instance Profile. The Instance Profile itself does not grant any permissions—it simply makes the role available to the EC2 instance.
 
 ```
 
@@ -351,7 +351,7 @@ it attaches the EC2 security group to the instance.
     2. What would break if removed  
 
 Under Rule 1)
-The EC2 instance would still launch, but the Flask application would fail when calling: secrets.get_secret_value()
+The EC2 instance would still launch, but the application would fail when calling: secrets.get_secret_value()
 because the instance would have no AWS credentials.
 The application would not be able to retrieve the database credentials and would not be able to connect to the RDS.
 

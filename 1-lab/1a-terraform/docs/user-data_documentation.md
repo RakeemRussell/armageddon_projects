@@ -434,7 +434,6 @@ conn.close()
 -Prevents unused ("idle") database connections from accumulating.
 -Signals to MySQL that the session has ended
 it is best practice to close database connections as soon as they are finished
-
 ```
 
 ---

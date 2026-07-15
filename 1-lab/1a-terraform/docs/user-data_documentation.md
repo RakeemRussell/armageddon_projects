@@ -332,7 +332,25 @@ port = int(c.get("port", 3306))
     `autocommit=True`)
 
 ```s
-This establishes a connection to the MySQL server running on the RDS instance
+conn = pymysql.connect(
+- creates a connection from the application running on the EC2 instance to the MySQL database running in Amazon RDS
+
+host=host
+- The host parameter tells PyMySQL which MySQL server to connect to. In this project, the value comes from the RDS endpoint
+- Without knowing the servers address, Python has no destination for the database connection
+
+user=user
+- username identifies which MySQL account is attempting to log in to the database, Then username is retrieved from AWS Secrets Manager
+
+password=password
+- password authenticates the database user. MySQL verifies that the supplied password matches the specified username before allowing access
+
+port=port
+- port identifies which network service on the RDS instance the application should connect to
+
+autocommit=True
+- MySQL groups database changes into transactions. Those changes are not permanently saved until the application explicitly calls commit()
+- Setting autocommit=True tells PyMySQL to automatically commit every SQL statement as soon as it successfully completes
 ```
 
 ---
@@ -341,9 +359,10 @@ This establishes a connection to the MySQL server running on the RDS instance
 `cur = conn.cursor()`
 
 ```s
-Creates a cursor
-A cursor lets you send SQL commands
-Without a cursor, you cant execute SQL statements
+cur = conn.cursor()
+- creates a cursor object, which acts as an interface between the Python application and the MySQL database
+- A database connection establishes communication with the database server, but it cannot execute SQL statements by itself. The cursor is responsible for sending SQL commands, receiving query results, and managing database operations
+- In this project, every SQL statement (CREATE, INSERT, SELECT) is executed through the cursor
 ```
 
 ---
@@ -352,8 +371,12 @@ Without a cursor, you cant execute SQL statements
 `cur.execute("CREATE DATABASE IF NOT EXISTS labdb;")`
 
 ```s
-Creates the database
-It sends the SQL command: CREATE DATABASE IF NOT EXISTS labdb;
+cur.execute("CREATE DATABASE IF NOT EXISTS labdb;")
+- create a database rule/behavior
+
+CREATE DATABASE labdb;
+- This SQL command creates the labdb database where the application will store its data. The application needs a database before it can create tables or insert notes
+- Once labdb is selected, every SQL statement that follows is executed against that database unless another database is selected
 ```
 
 ---
@@ -362,8 +385,8 @@ It sends the SQL command: CREATE DATABASE IF NOT EXISTS labdb;
 `cur.execute("USE labdb;")`
 
 ```s
-Now that the database exists, MySQL changes its current working database
-Now every SQL command will run inside labdb
+- This SQL statement tells MySQL to make labdb the active database for the current connection
+- Once labdb is selected, every SQL statement that follows is executed against that database unless another database is selected
 ```
 
 `cur.execute("""`  
@@ -374,14 +397,14 @@ Now every SQL command will run inside labdb
 `""")`
 
 ```s
-This creates the notes table
-Column 1,
-id INT - An integer
-AUTO_INCREMENT - MySQL automatically assigns the next number
-PRIMARY KEY - uniquely identifies every row, therefore no two notes can have the same ID.
-Column 2,
-note VARCHAR(255) - Stores text up to 255 characters
-NOT NULL - means note cannot be empty
+CREATE TABLE IF NOT EXISTS notes
+- allows the application to create the notes table only if it does not already exist.
+
+id INT AUTO_INCREMENT PRIMARY KEY
+- creates a unique identifier for every note.
+-INT stores the ID as an integer.
+-AUTO_INCREMENT automatically assigns the next available number.
+-PRIMARY KEY guarantees every row has a unique identifier
 ```
 
 ---
@@ -390,8 +413,10 @@ NOT NULL - means note cannot be empty
 `cur.close()`
 
 ```s
-Closes the cursor
-when finished sending SQL commands, the cursor is no longer needed
+cur.close()
+- This line closes the database cursor after the SQL operation has finished
+- A cursor is the object that sends SQL commands to the database and receives the results. Once the query has completed, the cursor is no longer needed, so it should be closed to release the resources associated with it
+- Closing the cursor is considered a best practice because it tells both the Python application and the database that this object is finished being used
 ```
 
 ---
@@ -400,9 +425,16 @@ when finished sending SQL commands, the cursor is no longer needed
 `conn.close()`
 
 ```s
-Disconnects from MySQL and closes the connection
-Leaving connections open wastes database resources and,
-over time, can exhaust the maximum number of allowed connections
+conn.close()
+- This line closes the connection between the application and the MySQL database
+- When pymysql.connect() is called, Python opens a network connection to the RDS instance. Once the application finishes using the database, that connection is no longer needed
+- Closing the connection:
+-Frees resources on the EC2 instance.
+-Frees resources on the RDS instance.
+-Prevents unused ("idle") database connections from accumulating.
+-Signals to MySQL that the session has ended
+it is best practice to close database connections as soon as they are finished
+
 ```
 
 ---
@@ -411,8 +443,8 @@ over time, can exhaust the maximum number of allowed connections
 `return "Initialized labdb + notes table."`
 
 ```s
-Returns a response
-Application sends "Initialized labdb + notes table." text back to the browser
+return "Initialized labdb + notes table."ext
+- This line sends a response back to the web browser (the HTTP client) indicating that the /init endpoint completed successfully
 ```
 
 ---
@@ -431,9 +463,34 @@ Application sends "Initialized labdb + notes table." text back to the browser
     `return f"Inserted note: {note}"`
 
 ```s
-Receives ?note=hello
-Runs INSERT
-Parameterized query, VALUES(%s), protects against SQL Injection
+@app.route("/add", methods=["POST", "GET"])
+- This tells the application that whenever a client requests the /add URL using either the GET or POST HTTP method, it should execute the add_note() function
+
+note = request.args.get("note", "").strip()
+- retrieves the value of the note query parameter from the URL
+
+if not note:
+    return "Missing note param. Try: /add?note=hello", 400
+- This validates that the user actually supplied a note before attempting to insert data into the database
+
+conn = get_conn()
+- This creates a connection to the RDS MySQL database using the credentials retrieved from AWS Secrets Manager
+
+cur = conn.cursor()
+- cursor is the object that sends SQL commands to the database
+
+cur.execute(    "INSERT INTO notes(note) VALUES(%s);",    (note,))
+- inserts the users note into the notes table
+
+cur.close()
+- releases the cursor resources after the SQL statement finishes
+
+conn.close()
+- closes the database connection after the request completes
+
+return f"Inserted note: {note}"
+- sends a confirmation message back to the client indicating that the note was successfully inserted
+
 ```
 
 ---
@@ -454,10 +511,38 @@ Parameterized query, VALUES(%s), protects against SQL Injection
     `return out`
 
 ```s
-Runs SELECT
-Returns all rows
-Builds HTML
-Displays notes
+def list_notes()
+- A function that handles requests to the /list endpoint
+
+@app.route("/list")
+- tells the application that whenever a client requests the /list URL, it should execute the list_notes() function
+
+conn = get_conn()
+- Creates a connection to the RDS MySQL database
+
+cur = conn.cursor()
+- cursor allows Python to send SQL commands to the database and retrieve results.
+
+cur.execute("SELECT id, note FROM notes ORDER BY id DESC;")
+- Executes a SQL query that retrieves every note from the notes table
+
+rows = cur.fetchall()
+- Retrieves every row returned by the SQL query and stores them in a Python variable
+
+cur.close()
+conn.close()
+- Releases the cursor and database connection after they are no longer needed
+
+out = "<h3>Notes</h3><ul>"
+
+for r in rows:
+    out += f"<li>{r[0]}: {r[1]}</li>"
+
+out += "</ul>"
+- Builds an HTML unordered list containing every note returned from the database
+
+return out
+- Sends the completed HTML response back to the users web browser
 ```
 
 ---
@@ -468,8 +553,18 @@ Displays notes
 `PY`
 
 ```S
-Run Application
-Accept connections from anywhere, on port 80
+if __name__ == "__main__":
+- This checks whether the Python file is being run directly or imported by another Python file
+
+app.run(host="0.0.0.0", port=80)
+- starts the application development server and tells it
+-what network interface to listen on
+-what port to accept traffic on
+Without this line, the application exists but no web server is running.
+
+PY
+- a Here Document Terminator Bash rule, not Python
+- closes the file-writing block
 ```
 
 ---
@@ -478,10 +573,15 @@ Accept connections from anywhere, on port 80
 `cat >/etc/systemd/system/rdsapp.service <<'SERVICE'`
 
 ```s
-cat, displays the contents of a file
->, operator redirects output into a file
-cat >/etc/systemd/system/rdsapp.service, means, take whatever follows and save it into this file
-<<'SERVICE', means, everything until you see the word SERVICE should be treated as the contents of the file
+cat >/etc/systemd/system/rdsapp.service <<'SERVICE'
+- the beginning of creating a systemd unit file
+- Creates a Linux service definition that tells the operating system how to start, manage, restart, and enable the Flask application
+
+/etc/systemd/system/rdsapp.service
+- tells Linux where to create the custom systemd service file
+
+<<'SERVICE'
+- tells Bash everything until the next SERVICE line should be written into the file
 ```
 
 ---
@@ -499,8 +599,9 @@ simply the title of the section, named Unit
 `Description=EC2 to RDS Notes App`
 
 ```s
-simply a human-readable description
-It doesnt affect how the service runs, it just helps identify it
+Description=EC2 to RDS Notes App
+- provides a human-readable description of what the systemd service does
+- tells administrators this service runs the application that connects an EC2 instance to an RDS database for storing notes
 ```
 
 ---
@@ -509,9 +610,12 @@ It doesnt affect how the service runs, it just helps identify it
 `After=network.target`
 
 ```s
-It tells systemd, do not start this application until the network is available
-If the Application started before networking was ready, it would fail
-Without a network connection retrieving secrets, RDS connection, HTTP requests, tasks would not work
+After=network.target
+- tells systemds start the rdsapp service only after the basic network target has been reached
+- The application depends on network connectivity because it needs to communicate with
+-AWS Secrets Manager
+-Amazon RDS MySQL
+The application cannot function without network access
 ```
 
 ---
@@ -529,9 +633,8 @@ simply the title of the section, named Service
 `WorkingDirectory=/opt/rdsapp`
 
 ```s
-tells systemd,
-Before starting the application, change into the /opt/rdsapp directory
-
+WorkingDirectory=/opt/rdsapp
+- tells systemd which directory should be considered the applications working directory when starting the application
 ```
 
 ---
@@ -572,11 +675,13 @@ Restart=always
 `ExecStart=/usr/bin/python3 /opt/rdsapp/app.py`
 
 ```s
-tells systemd what command to execute to start the service
-/usr/bin/python3, is the Python interpreter
-/opt/rdsapp/app.py, is the Application
-systemd executes this command, Application starts and begins listening on port 80
-because code contains, app.run(host="0.0.0.0", port=80)
+/usr/bin/python3
+- tells systemd which program should execute the application.
+- Linux does not automatically know that app.py should run using Python. The service must explicitly specify the interpreter
+- this command tells Linux use the Python 3 interpreter installed at /usr/bin/python3 to run the application
+
+/opt/rdsapp/app.py
+- specifies the Python file systemd should execute
 ```
 
 ---
@@ -585,7 +690,9 @@ because code contains, app.run(host="0.0.0.0", port=80)
 `Restart=always`
 
 ```s
-tells systemd, if the application stops for any reason start it again
+Restart=always
+- tells systemd to automatically restart the application whenever the service stops
+- improving application availability and removes the need for manual intervention
 ```
 
 ---
@@ -628,17 +735,29 @@ It is not written into the rdsapp.service file itself
 `systemctl daemon-reload`
 
 ```s
-tells systemd,
-Reload all of the service configuration files because one was added or changed
-Without reloading, systemd doesnt know that services added, exists.
+systemctl daemon-reload
+- the command exists because systemd does not automatically detect new or modified service files
+- daemon-reload forces systemd to:
+Scan service directories
+Read new service definitions
+Detect changes to existing service files
+Update its internal configuration
+
+
 ```
 
 `systemctl enable rdsapp`
 
 ```s
-tells Linux, 
-Start this service automatically every time the server boots
-enable does not start the service immediately, only configures it to start on future boots
+systemctl enable rdsapp
+- configures the rdsapp service to start automatically every time the EC2 instance boots
+- ensureing the application is always available after:
+An EC2 reboot
+A stop/start cycle
+A system restart due to maintenance
+An unexpected reboot
+
+Without manual intervention
 ```
 
 ---
@@ -647,7 +766,15 @@ enable does not start the service immediately, only configures it to start on fu
 `systemctl start rdsapp`
 
 ```s
-starts the service
-It reads the service file and executes - /usr/bin/python3 /opt/rdsapp/app.py
-Application begins listening on port 80
+systemctl start rdsapp
+- This command tells systemd (Linuxs service manager) to immediately start the rdsapp service
+- The rdsapp service runs the application using the configuration defined in:
+/etc/systemd/system/rdsapp.service
+- When the command runs, systemd:
+Reads the service file.
+Sets the working directory.
+Loads the environment variables.
+Executes: /usr/bin/python3 /opt/rdsapp/app.py
+
+- This starts the application so it can begin accepting HTTP requests on port 80
 ```

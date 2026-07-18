@@ -43,8 +43,9 @@ data "aws_iam_policy_document" "ec2_secrets_policy" {
     ]
 
     resources = [
-      aws_db_instance.mysql_rds_db.master_user_secret[0].secret_arn,
-
+      
+      
+      aws_secretsmanager_secret.db_secret.arn
     ]
   }
     statement {

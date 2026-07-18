@@ -92,11 +92,31 @@ missing "ssm:GetParameters" in file 11, under actions in  "aws_iam_policy_docume
 
 ---
 
-## Error: ---
+## Error: 6
+
+conflicting configuration arguments
 
 > Problem:
 
-![Missing required provider](screenshots/sc_0.png)
+![Missing required provider](screenshots/sc_15.png)
+
+> Solution:
+deleted manage_master_user_password = false from file 6
+
+![Missing required provider](screenshots/sc_16.png)
+
+---
+
+---
+
+## Error: 7
+
+Invalid index
+
+> Problem:
+
+![Missing required provider](screenshots/sc_17.png)
+![Missing required provider](screenshots/sc_18.png)
 
 > Solution:
 
@@ -106,55 +126,58 @@ missing "ssm:GetParameters" in file 11, under actions in  "aws_iam_policy_docume
 
 ---
 
-## Error: ---
+## Error: 8
+
+creating Secrets Manager Secret (lab_rds_mysql): operation error Secrets Manager: CreateSecret, https response error StatusCode: 400, RequestID: a815106c-649a-4f4a-8a3e-600f0aace6dc, InvalidRequestException: You can't create this secret because a secret with this name is already scheduled for deletion
 
 > Problem:
+lab_rds_mysql secret was scheduled for deletion after running terraform destroy
 
-![Missing required provider](screenshots/sc_0.png)
+![Missing required provider](screenshots/sc_19.png)
 
 > Solution:
 
-![Missing required provider](screenshots/sc_0.png)
+restore the secret
+
+![Missing required provider](screenshots/sc_20.png)
+![Missing required provider](screenshots/sc_21.png)
 
 ---
 
 ---
 
-## Error: ---
+## Error: 10
+
+creating Secrets Manager Secret (lab_rds_mysql): operation error Secrets Manager: CreateSecret, https response error StatusCode: 400, RequestID: 70c6d784-0a65-412d-a6e3-471a00dd91af, ResourceExistsException: The operation failed because the secret lab_rds_mysql already exists.
 
 > Problem:
 
-![Missing required provider](screenshots/sc_0.png)
+lab_rds_mysql secret already exists
+
+![Missing required provider](screenshots/sc_22.png)
 
 > Solution:
 
+Rename the secret to lab/rds/mysql
+
 ![Missing required provider](screenshots/sc_0.png)
 
 ---
 
 ---
 
-## Error: ---
+## Error: 11
+
+aws: [ERROR]: An error occurred (ParameterNotFound) when calling the GetParameter operation:
 
 > Problem:
 
-![Missing required provider](screenshots/sc_0.png)
+miss matched names
+
+![Missing required provider](screenshots/sc_23.png)
 
 > Solution:
-
-![Missing required provider](screenshots/sc_0.png)
-
----
-
----
-
-## Error: ---
-
-> Problem:
-
-![Missing required provider](screenshots/sc_0.png)
-
-> Solution:
+changed from aws "ssm get-parameter --name /lab/db/endpoint" to "aws ssm get-parameter --name db_endpoint_parameter"
 
 ![Missing required provider](screenshots/sc_0.png)
 

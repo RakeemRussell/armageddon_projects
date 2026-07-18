@@ -13,8 +13,9 @@ resource "aws_db_instance" "mysql_rds_db" {
 
   db_name  = "notes_db"
   username = "admin"
+  password = "password123" 
 
-  manage_master_user_password = true
+
 
   parameter_group_name = "default.mysql8.4"
 

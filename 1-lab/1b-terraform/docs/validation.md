@@ -53,6 +53,7 @@ $ aws ssm get-parameters \
 
 ---
 
+```s
 > added to user_data.sh  
 
 ssm = boto3.client("ssm", region_name=REGION)
@@ -69,7 +70,8 @@ db = c["dbname"]
 port = int(c["port"])
 
 return f"Initialized {db} + notes table."
----
+
+
 
 > removed from user_data.sh  
 
@@ -85,3 +87,62 @@ db = c.get("dbname", "notes_db")
 port = int(c.get("port", 3306))
 
 return "Initialized labdb + notes table."
+```
+
+```s
+> removed from file 9
+
+db_host = aws_db_instance.mysql_rds_db.address
+
+db_name = aws_db_instance.mysql_rds_db.db_name
+
+secret_id = aws_db_instance.mysql_rds_db.master_user_secret[0].secret_arn
+
+> added to file 9
+
+secret_id = aws_secretsmanager_secret.rds_secret.name
+```
+
+```s
+> removed from file 8
+
+aws_db_instance.mysql_rds_db.master_user_secret[0].secret_arn
+
+> added to file 8
+
+aws_secretsmanager_secret.rds_secret.arn
+```
+
+```s
+> removed from file 6
+
+  manage_master_user_password = true
+
+> added to file 6
+
+  manage_master_user_password = false (deleted)
+```
+
+---
+
+7.1 Verify Parameter Store Values
+
+aws ssm get-parameters \
+  --names /lab/db/endpoint /lab/db/port /lab/db/name \
+  --with-decryption
+
+![alt text](screenshots/sc_7.1.png)
+
+7.2 Verify Secrets Manager Value
+
+  aws secretsmanager get-secret-value \
+  --secret-id lab/rds/mysql
+
+![alt text](screenshots/sc_7.2.png)
+
+7.3 Verify EC2 Can Read Both Systems From EC2:
+
+aws ssm get-parameter --name db_endpoint_parameter
+aws secretsmanager get-secret-value --secret-id lab/rds/mysql
+
+![alt text](screenshots/sc_7.3.png)

@@ -35,8 +35,8 @@ def get_conn():
     host = c["host"]
     user = c["username"]
     password = c["password"]
-    port = int(c.get("port", 3306))
-    db = c.get("dbname", "notes_db")  # we'll create this if it doesn't exist
+    port = int(c["port"])
+    db = c["dbname"]
     return pymysql.connect(host=host, user=user, password=password, port=port, database=db, autocommit=True)
 
 app = Flask(__name__)
@@ -55,7 +55,7 @@ def init_db():
     host = c["host"]
     user = c["username"]
     password = c["password"]
-    port = int(c.get("port", 3306))
+    port = int(c["port"])
     db = c["dbname"]
 
     # connect without specifying a DB first
@@ -72,7 +72,7 @@ def init_db():
     """)
     cur.close()
     conn.close()
-    return "Initialized labdb + notes table."
+    return f"Initialized {db} + notes table."
 
 @app.route("/add", methods=["POST", "GET"])
 def add_note():

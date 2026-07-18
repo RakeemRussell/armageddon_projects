@@ -53,7 +53,8 @@ $ aws ssm get-parameters \
 
 ---
 
-> added to user_data.sh
+> added to user_data.sh  
+
 ssm = boto3.client("ssm", region_name=REGION)
 
 def get_parameter(name):
@@ -63,12 +64,24 @@ def get_parameter(name):
 cur.execute(f"USE `{db}`;")
 cur.execute(f"CREATE DATABASE IF NOT EXISTS `{db}`;")
 
+db = c["dbname"]
+
+port = int(c["port"])
+
+return f"Initialized {db} + notes table."
 ---
 
-> removed from user_data.sh
+> removed from user_data.sh  
+
 Environment=DB_HOST=${db_host}
 Environment=DB_NAME=${db_name}
 Environment=DB_PORT=3306
 
-    cur.execute("CREATE DATABASE IF NOT EXISTS notes_db;")
-    cur.execute("USE notes_db;")
+cur.execute("CREATE DATABASE IF NOT EXISTS notes_db;")
+cur.execute("USE notes_db;")
+
+db = c.get("dbname", "notes_db") 
+
+port = int(c.get("port", 3306))
+
+return "Initialized labdb + notes table."

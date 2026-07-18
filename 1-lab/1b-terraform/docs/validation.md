@@ -33,4 +33,42 @@ http://13.221.87.241/list
 
 ---
 $ terraform destroy -auto-approve  
-Destroy complete! Resources: 22 destroyed.
+Destroy complete! Resources: 22 destroyed.  
+
+---
+
+Terraform files 00-11 and user-data.sh works in 1b-terraform/terraform/
+
+$ terraform validate  
+Success! The configuration is valid.
+
+$ terraform apply -auto-approve  
+Apply complete! Resources: 25 added, 0 changed, 0 destroyed.  
+
+---
+$ aws ssm get-parameters \
+  --names db_endpoint_parameter db_port_parameter db_name_parameter
+
+![Missing required provider](screenshots/sc_10.png)
+
+---
+
+> added to user_data.sh
+ssm = boto3.client("ssm", region_name=REGION)
+
+def get_parameter(name):
+    response = ssm.get_parameter(Name=name)
+    return response["Parameter"]["Value"]
+
+cur.execute(f"USE `{db}`;")
+cur.execute(f"CREATE DATABASE IF NOT EXISTS `{db}`;")
+
+---
+
+> removed from user_data.sh
+Environment=DB_HOST=${db_host}
+Environment=DB_NAME=${db_name}
+Environment=DB_PORT=3306
+
+    cur.execute("CREATE DATABASE IF NOT EXISTS notes_db;")
+    cur.execute("USE notes_db;")

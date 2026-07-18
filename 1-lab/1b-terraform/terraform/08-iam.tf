@@ -38,11 +38,25 @@ data "aws_iam_policy_document" "ec2_secrets_policy" {
   statement {
 
     actions = [
-      "secretsmanager:GetSecretValue"
+      "secretsmanager:GetSecretValue",
+
     ]
 
     resources = [
-      aws_db_instance.mysql_rds_db.master_user_secret[0].secret_arn
+      aws_db_instance.mysql_rds_db.master_user_secret[0].secret_arn,
+
+    ]
+  }
+    statement {
+    actions = [
+      "ssm:GetParameter",
+      "ssm:GetParameters"
+    ]
+
+    resources = [
+      aws_ssm_parameter.db_endpoint.arn,
+      aws_ssm_parameter.db_port.arn,
+      aws_ssm_parameter.db_name.arn
     ]
   }
 }

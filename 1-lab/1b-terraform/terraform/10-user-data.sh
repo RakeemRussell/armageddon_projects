@@ -15,14 +15,19 @@ REGION = os.environ.get("AWS_REGION", "us-east-1")
 SECRET_ID = os.environ.get("SECRET_ID")
 
 secrets = boto3.client("secretsmanager", region_name=REGION)
+ssm = boto3.client("ssm", region_name=REGION)
+
+def get_parameter(name):
+    response = ssm.get_parameter(Name=name)
+    return response["Parameter"]["Value"]
 
 def get_db_creds():
     resp = secrets.get_secret_value(SecretId=SECRET_ID)
     s = json.loads(resp["SecretString"])
 
-    s["host"] = os.environ.get("DB_HOST")
-    s["port"] = os.environ.get("DB_PORT", 3306)
-    s["dbname"] = os.environ.get("DB_NAME", "notes_db")
+    s["host"] = get_parameter("db_endpoint_parameter")
+    s["port"] = get_parameter("db_port_parameter")
+    s["dbname"] = get_parameter("db_name_parameter")
     return s
 
 def get_conn():
@@ -51,12 +56,14 @@ def init_db():
     user = c["username"]
     password = c["password"]
     port = int(c.get("port", 3306))
+    db = c["dbname"]
 
     # connect without specifying a DB first
     conn = pymysql.connect(host=host, user=user, password=password, port=port, autocommit=True)
     cur = conn.cursor()
-    cur.execute("CREATE DATABASE IF NOT EXISTS notes_db;")
-    cur.execute("USE notes_db;")
+    cur.execute(f"CREATE DATABASE IF NOT EXISTS `{db}`;")
+    cur.execute(f"USE `{db}`;")
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS notes (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -105,9 +112,6 @@ After=network.target
 [Service]
 WorkingDirectory=/opt/rdsapp
 Environment=SECRET_ID=${secret_id}
-Environment=DB_HOST=${db_host}
-Environment=DB_NAME=${db_name}
-Environment=DB_PORT=3306
 ExecStart=/usr/bin/python3 /opt/rdsapp/app.py
 Restart=always
 

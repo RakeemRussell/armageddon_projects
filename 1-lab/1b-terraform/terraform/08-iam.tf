@@ -58,6 +58,20 @@ data "aws_iam_policy_document" "ec2_secrets_policy" {
       aws_ssm_parameter.db_name.arn
     ]
   }
+    statement {
+
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:DescribeLogStreams",
+      "logs:PutLogEvents"
+    ]
+
+    resources = [
+      aws_cloudwatch_log_group.lab_rds_app.arn,
+      "${aws_cloudwatch_log_group.lab_rds_app.arn}:*"
+    ]
+  }
 }
 
 ### Attaches the Policy to the IAM Role

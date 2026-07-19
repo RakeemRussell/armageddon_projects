@@ -30,7 +30,9 @@ Ran terraform init then terraform validate
 
 > Solution:
 
-![Missing required provider](screenshots/sc_0.png)
+Changed name from db/endpoint/parameter to db_endpoint_parameter
+
+![Missing required provider](screenshots/sc_24.png)
 
 ---
 
@@ -46,7 +48,9 @@ Ran terraform init then terraform validate
 
 > Solution:
 
-![Missing required provider](screenshots/sc_0.png)
+Changed name from db/port/parameter to db_port_parameter
+
+![Missing required provider](screenshots/sc_25.png)
 
 ---
 
@@ -58,11 +62,13 @@ Ran terraform init then terraform validate
 
 > Problem:
 
-![unqualified name](screenshots/sc_0.png)
+![unqualified name](screenshots/sc_9.png)
 
 > Solution:
 
-![Missing required provider](screenshots/sc_0.png)
+Changed name from db/name/parameter to db_name_parameter
+
+![Missing required provider](screenshots/sc_26.png)
 
 ---
 
@@ -101,7 +107,7 @@ conflicting configuration arguments
 ![Missing required provider](screenshots/sc_15.png)
 
 > Solution:
-deleted manage_master_user_password = false from file 6
+deleted "manage_master_user_password = false" from file 6
 
 ![Missing required provider](screenshots/sc_16.png)
 
@@ -115,12 +121,16 @@ Invalid index
 
 > Problem:
 
+IAM policy trying to reference aws-managed rds secret
+
 ![Missing required provider](screenshots/sc_17.png)
 ![Missing required provider](screenshots/sc_18.png)
 
 > Solution:
 
-![Missing required provider](screenshots/sc_0.png)
+changed IAM policy to reference new secrets manager secret
+
+![Missing required provider](screenshots/sc_27.png)
 
 ---
 
@@ -146,7 +156,7 @@ restore the secret
 
 ---
 
-## Error: 10
+## Error: 9
 
 creating Secrets Manager Secret (lab_rds_mysql): operation error Secrets Manager: CreateSecret, https response error StatusCode: 400, RequestID: 70c6d784-0a65-412d-a6e3-471a00dd91af, ResourceExistsException: The operation failed because the secret lab_rds_mysql already exists.
 
@@ -158,15 +168,15 @@ lab_rds_mysql secret already exists
 
 > Solution:
 
-Rename the secret to lab/rds/mysql
+Rename the secret to lab/rds/mysql from lab_rds_mysql
 
-![Missing required provider](screenshots/sc_0.png)
-
----
+![Missing required provider](screenshots/sc_28.png)
 
 ---
 
-## Error: 11
+---
+
+## Error: 10
 
 aws: [ERROR]: An error occurred (ParameterNotFound) when calling the GetParameter operation:
 
@@ -177,9 +187,12 @@ miss matched names
 ![Missing required provider](screenshots/sc_23.png)
 
 > Solution:
-changed from aws "ssm get-parameter --name /lab/db/endpoint" to "aws ssm get-parameter --name db_endpoint_parameter"
+changed from  
+"aws ssm get-parameter --name /lab/db/endpoint"  
+to  
+"aws ssm get-parameter --name db_endpoint_parameter"
 
-![Missing required provider](screenshots/sc_0.png)
+![Missing required provider](screenshots/sc_7.3.png)
 
 ---
 

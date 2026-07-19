@@ -43,8 +43,6 @@ data "aws_iam_policy_document" "ec2_secrets_policy" {
     ]
 
     resources = [
-      
-      
       aws_secretsmanager_secret.db_secret.arn
     ]
   }

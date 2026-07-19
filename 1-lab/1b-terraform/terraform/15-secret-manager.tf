@@ -1,5 +1,5 @@
 resource "aws_secretsmanager_secret" "db_secret" {
-  name = "lab/rds/mysql"
+  name = "lab/rds/mysql/2"
 }
 
 resource "aws_secretsmanager_secret_version" "db_secret_value" {

@@ -142,7 +142,7 @@ aws ssm get-parameters \
 
 7.3 Verify EC2 Can Read Both Systems From EC2:
 
-aws ssm get-parameter --name db_endpoint_parameter
+aws ssm get-parameter --name db_endpoint_parameter  
 aws secretsmanager get-secret-value --secret-id lab/rds/mysql
 
 ![alt text](screenshots/sc_7.3.png)

@@ -15,3 +15,9 @@ resource "aws_ssm_parameter" "db_name" {
   type  = "String"
   value = aws_db_instance.mysql_rds_db.db_name
 }
+
+resource "aws_ssm_parameter" "cloudwatch_agent_config" {
+  name  = "cloudwatch_agent_parameter"
+  type  = "String"
+  value = file("${path.module}/16-cloudwatch-agent-config.json")
+}

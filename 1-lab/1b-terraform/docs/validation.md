@@ -54,26 +54,93 @@ $ aws ssm get-parameters \
 ---
 
 ```s
-> added to user_data.sh  
-
+-----------------------
+{added to user_data.sh}  
+-----------------------
+>>> <<<
 ssm = boto3.client("ssm", region_name=REGION)
 
+>>> <<<
 def get_parameter(name):
     response = ssm.get_parameter(Name=name)
     return response["Parameter"]["Value"]
 
+>>> <<<
 cur.execute(f"USE `{db}`;")
 cur.execute(f"CREATE DATABASE IF NOT EXISTS `{db}`;")
 
+>>> <<<
 db = c["dbname"]
 
+>>> <<<
 port = int(c["port"])
 
+>>> <<<
 return f"Initialized {db} + notes table."
 
+>>> <<<
+dnf install -y amazon-cloudwatch-agent
+
+>>> <<<
+import logging
+
+>>> <<<
+logging.basicConfig(
+    filename="/var/log/rdsapp.log",
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
+)
+
+>>> <<<
+logger = logging.getLogger(__name__)
+
+>>> documented in 1b_user-data_documentation <<<
+------------------------------------------------
+logging.basicConfig(
+    filename="/var/log/rdsapp.log",
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
+)
+
+>>> documented in 1b_user-data_documentation <<<
+logger = logging.getLogger(__name__)
+
+>>> documented in 1b_user-data_documentation <<<
+    try:
+        return pymysql.connect(
+            host=host,
+            user=user,
+            password=password,
+            port=port,
+            database=db,
+            autocommit=True
+        )
+    except Exception:
+        logger.exception("Database connection failed")
+        raise
+
+>>> <<<
+mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
+
+>>> <<<
+aws ssm get-parameter \  
+--name cloudwatch_agent_config \  
+--query Parameter.Value \  
+--output text \  
+> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json  
+
+>>> <<<
+# Start CloudWatch Agent  
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \  
+-a fetch-config \  
+-m ec2 \  
+-c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json \  
+-s
 
 
-> removed from user_data.sh  
+-----------------------
+{removed from user_data.sh}  
+-----------------------
 
 Environment=DB_HOST=${db_host}
 Environment=DB_NAME=${db_name}
@@ -87,6 +154,16 @@ db = c.get("dbname", "notes_db")
 port = int(c.get("port", 3306))
 
 return "Initialized labdb + notes table."
+
+return pymysql.connect(host=host, user=user, password=password, port=port, database=db, autocommit=True)
+```
+
+```s
+> removed from file 11
+
+> added to file 11
+
+aws_ssm_parameter.cloudwatch_agent_config.arn
 ```
 
 ```s
@@ -101,6 +178,8 @@ secret_id = aws_db_instance.mysql_rds_db.master_user_secret[0].secret_arn
 > added to file 9
 
 secret_id = aws_secretsmanager_secret.rds_secret.name
+
+
 ```
 
 ```s
@@ -146,3 +225,10 @@ aws ssm get-parameter --name db_endpoint_parameter
 aws secretsmanager get-secret-value --secret-id lab/rds/mysql
 
 ![alt text](screenshots/sc_7.3.png)
+
+7.4 Verify CloudWatch Log Group Exists
+
+aws logs describe-log-groups \
+  --log-group-name-prefix /aws/ec2/lab-rds-app
+
+![sysbm](screenshots/sc_7.4.png)

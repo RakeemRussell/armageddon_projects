@@ -1,7 +1,24 @@
 #!/bin/bash
 dnf update -y
 dnf install -y python3-pip
+dnf install -y amazon-cloudwatch-agent
 pip3 install flask pymysql boto3
+
+
+# ==============================
+# cloudwatch agent configuration
+# ==============================
+
+# creates cloudwatch agent config directory
+mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
+
+# retrieves cloudwatch agent configuration from parameter store
+aws ssm get-parameter \
+--name cloudwatch_agent_parameter \
+--query Parameter.Value \
+--output text \
+> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
 
 mkdir -p /opt/rdsapp
 cat >/opt/rdsapp/app.py <<'PY'
@@ -9,7 +26,18 @@ import json
 import os
 import boto3
 import pymysql
+import logging
 from flask import Flask, request
+
+logging.basicConfig(
+    filename="/var/log/rdsapp.log",
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
+
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 SECRET_ID = os.environ.get("SECRET_ID")
@@ -37,7 +65,19 @@ def get_conn():
     password = c["password"]
     port = int(c["port"])
     db = c["dbname"]
-    return pymysql.connect(host=host, user=user, password=password, port=port, database=db, autocommit=True)
+
+    try:
+        return pymysql.connect(
+            host=host,
+            user=user,
+            password=password,
+            port=port,
+            database=db,
+            autocommit=True
+        )
+    except Exception:
+        logger.exception("Database connection failed")
+        raise
 
 app = Flask(__name__)
 
@@ -119,6 +159,14 @@ Restart=always
 WantedBy=multi-user.target
 SERVICE
 
+# Start CloudWatch Agent
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+-a fetch-config \
+-m ec2 \
+-c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json \
+-s
+
 systemctl daemon-reload
 systemctl enable rdsapp
 systemctl start rdsapp
+

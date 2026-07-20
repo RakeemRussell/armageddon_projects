@@ -198,28 +198,184 @@ to
 
 ---
 
-## Error: ---
+## Error: 11
 
 > Problem:
 
-![Missing required provider](screenshots/sc_0.png)
+wrong file path  
+cloudwatch-agent-config.json
+
+![sysbm](screenshots/sc_29.png)
+![sysbm](screenshots/sc_30.png)
 
 > Solution:
 
-![Missing required provider](screenshots/sc_0.png)
+correct file path  
+16-cloudwatch-agent-config.json
+
+![sysbm](screenshots/sc_31.png)
 
 ---
 
 ---
 
+## Error: 12
+
+> Problem:
+
+wrong resource name
+
+![sysbm](screenshots/sc_32.png)
+![sysbm](screenshots/sc_33.png)
+
+> Solution:
+
+corrected resource name
+
+![sysbm](screenshots/sc_34.png)
+
+---
+
 ## Error: ---
 
 > Problem:
 
-![Missing required provider](screenshots/sc_0.png)
+![sysbm](screenshots/sc_0.png)
 
 > Solution:
 
-![Missing required provider](screenshots/sc_0.png)
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
+
+---
+
+## Error: ---
+
+> Problem:
+
+![sysbm](screenshots/sc_0.png)
+
+> Solution:
+
+![sysbm](screenshots/sc_0.png)
 
 ---

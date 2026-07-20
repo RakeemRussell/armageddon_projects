@@ -36,7 +36,7 @@ resource "aws_iam_policy" "ec2_secrets_policy" {
 data "aws_iam_policy_document" "ec2_secrets_policy" {
 
   statement {
-
+    effect = "Allow"
     actions = [
       "secretsmanager:GetSecretValue",
 
@@ -47,6 +47,7 @@ data "aws_iam_policy_document" "ec2_secrets_policy" {
     ]
   }
     statement {
+    effect = "Allow"
     actions = [
       "ssm:GetParameter",
       "ssm:GetParameters"
@@ -55,23 +56,52 @@ data "aws_iam_policy_document" "ec2_secrets_policy" {
     resources = [
       aws_ssm_parameter.db_endpoint.arn,
       aws_ssm_parameter.db_port.arn,
-      aws_ssm_parameter.db_name.arn
+      aws_ssm_parameter.db_name.arn,
+      
     ]
   }
-    statement {
 
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:DescribeLogStreams",
-      "logs:PutLogEvents"
-    ]
+  statement {
+  effect = "Allow"
 
-    resources = [
-      aws_cloudwatch_log_group.lab_rds_app.arn,
-      "${aws_cloudwatch_log_group.lab_rds_app.arn}:*"
-    ]
-  }
+  actions = [
+    "ssm:GetParameter"
+  ]
+
+  resources = [
+    aws_ssm_parameter.cloudwatch_agent_config.arn
+  ]
+}
+
+statement {
+  effect = "Allow"
+
+  actions = [
+    "logs:CreateLogGroup",
+    "logs:CreateLogStream",
+    "logs:PutLogEvents",
+    "logs:DescribeLogGroups",
+    "logs:DescribeLogStreams"
+  ]
+
+  resources = [
+    aws_cloudwatch_log_group.cloudwatch_log.arn,
+    "${aws_cloudwatch_log_group.cloudwatch_log.arn}:*"
+  ]
+}
+
+statement {
+
+  effect = "Allow"
+
+  actions = [
+    "logs:DescribeLogGroups"
+  ]
+
+  resources = [
+    "*"
+  ]
+}
 }
 
 ### Attaches the Policy to the IAM Role

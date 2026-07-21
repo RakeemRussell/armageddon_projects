@@ -81,7 +81,9 @@ statement {
     "logs:CreateLogStream",
     "logs:PutLogEvents",
     "logs:DescribeLogGroups",
-    "logs:DescribeLogStreams"
+    "logs:FilterLogEvents",
+    "logs:DescribeLogStreams",
+    "logs:GetLogEvents"
   ]
 
   resources = [

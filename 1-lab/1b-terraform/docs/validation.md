@@ -210,21 +210,21 @@ aws ssm get-parameters \
   --names /lab/db/endpoint /lab/db/port /lab/db/name \
   --with-decryption
 
-![alt text](screenshots/sc_7.1.png)
+![sysbm](screenshots/sc_7.1.png)
 
 7.2 Verify Secrets Manager Value
 
   aws secretsmanager get-secret-value \
   --secret-id lab/rds/mysql
 
-![alt text](screenshots/sc_7.2.png)
+![sysbm](screenshots/sc_7.2.png)
 
 7.3 Verify EC2 Can Read Both Systems From EC2:
 
 aws ssm get-parameter --name db_endpoint_parameter  
 aws secretsmanager get-secret-value --secret-id lab/rds/mysql
 
-![alt text](screenshots/sc_7.3.png)
+![sysbm](screenshots/sc_7.3.png)
 
 7.4 Verify CloudWatch Log Group Exists
 
@@ -232,3 +232,26 @@ aws logs describe-log-groups \
   --log-group-name-prefix /aws/ec2/lab-rds-app
 
 ![sysbm](screenshots/sc_7.4.png)
+
+7.5 Verify DB Failure Logs Appear Simulate failure (examples): Stop RDS Change DB password in Secrets Manager without updating DB Block SG temporarily
+
+Then check logs:
+
+aws logs filter-log-events \
+  --log-group-name /aws/ec2/lab-rds-app \
+  --filter-pattern "ERROR"
+
+Test that application can connect, before failure  
+![sysbm](screenshots/sc_35.png)  
+
+Create intentional failure  
+![sysbm](screenshots/sc_36.png)  
+
+Trigger failure  
+![sysbm](screenshots/sc_37.png)  
+
+Verify application log locally  
+![sysbm](screenshots/sc_38.png)  
+
+Verify CloudWatch received log  
+![sysbm](screenshots/sc_39.png)  

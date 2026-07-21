@@ -1,5 +1,10 @@
 resource "aws_secretsmanager_secret" "db_secret" {
-  name = "lab/rds/mysql/8"
+  name = "lab/rds/mysql/18"
+    recovery_window_in_days = 0
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "db_secret_value" {

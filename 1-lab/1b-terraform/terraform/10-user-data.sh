@@ -2,6 +2,7 @@
 dnf update -y
 dnf install -y python3-pip
 dnf install -y amazon-cloudwatch-agent
+systemctl stop amazon-cloudwatch-agent || true
 pip3 install flask pymysql boto3
 
 
@@ -13,11 +14,15 @@ pip3 install flask pymysql boto3
 mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
 
 # retrieves cloudwatch agent configuration from parameter store
-aws ssm get-parameter \
+until aws ssm get-parameter \
 --name cloudwatch_agent_parameter \
 --query Parameter.Value \
 --output text \
 > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+do
+    echo "Waiting for SSM parameter access..."
+    sleep 10
+done
 
 
 mkdir -p /opt/rdsapp
@@ -79,10 +84,12 @@ def get_conn():
         logger.exception("Database connection failed")
         raise
 
+logger.info("RDS application started")
 app = Flask(__name__)
 
 @app.route("/")
 def home():
+    logger.info("Home page requested")
     return """
     <h2>EC2 → RDS Notes App</h2>
     <p>POST /add?note=hello</p>
@@ -91,6 +98,7 @@ def home():
 
 @app.route("/init")
 def init_db():
+    logger.info("Initializing database")
     c = get_db_creds()
     host = c["host"]
     user = c["username"]
@@ -116,7 +124,9 @@ def init_db():
 
 @app.route("/add", methods=["POST", "GET"])
 def add_note():
+    
     note = request.args.get("note", "").strip()
+    logger.info(f"Adding note: {note}")
     if not note:
         return "Missing note param. Try: /add?note=hello", 400
     conn = get_conn()
@@ -128,6 +138,7 @@ def add_note():
 
 @app.route("/list")
 def list_notes():
+    logger.info("Listing notes")
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("SELECT id, note FROM notes ORDER BY id DESC;")

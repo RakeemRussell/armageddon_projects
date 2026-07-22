@@ -241,6 +241,8 @@ aws logs filter-log-events \
   --log-group-name /aws/ec2/lab-rds-app \
   --filter-pattern "ERROR"
 
+![sysbm](screenshots/sc_7.5.png)
+
 Test that application can connect, before failure  
 ![sysbm](screenshots/sc_35.png)  
 
@@ -255,3 +257,20 @@ Verify application log locally
 
 Verify CloudWatch received log  
 ![sysbm](screenshots/sc_39.png)  
+
+7.6 Verify CloudWatch Alarm
+
+aws cloudwatch describe-alarms \
+  --alarm-name-prefix lab-db-connection
+
+![sysbm](screenshots/sc_40.png)  
+
+7.7 Incident Recovery Verification After restoring correct credentials or connectivity:
+
+Incident Recovery Verification:
+
+![sysbm](screenshots/sc_41.png)  
+
+curl <http://3.84.13.196/list>  
+
+![sysbm](screenshots/sc_7.7.png)  

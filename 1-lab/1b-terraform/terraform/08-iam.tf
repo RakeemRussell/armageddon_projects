@@ -97,7 +97,8 @@ statement {
   effect = "Allow"
 
   actions = [
-    "logs:DescribeLogGroups"
+    "logs:DescribeLogGroups",
+    "cloudwatch:DescribeAlarms"
   ]
 
   resources = [

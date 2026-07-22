@@ -1,5 +1,5 @@
 resource "aws_secretsmanager_secret" "db_secret" {
-  name = "lab/rds/mysql/18"
+  name = "lab/rds/mysql"
     recovery_window_in_days = 0
 
   lifecycle {

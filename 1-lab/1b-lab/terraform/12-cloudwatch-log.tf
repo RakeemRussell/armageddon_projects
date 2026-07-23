@@ -24,7 +24,7 @@ resource "aws_cloudwatch_metric_alarm" "db_alarm_tf" {
 
   namespace = "rds/log"
 
-  metric_name = "db_error_connections"
+  metric_name = "db_error_connection"
 
   statistic = "Sum"
 

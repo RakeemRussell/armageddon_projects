@@ -5,38 +5,40 @@ resource "aws_cloudwatch_log_group" "cloudwatch_log" {
 
 resource "aws_cloudwatch_log_metric_filter" "db_error_metric_tf" {
 
-  name = "db_error_metric_aws"
+  name = "lab-db-connection-errors"
 
   log_group_name = aws_cloudwatch_log_group.cloudwatch_log.name
 
   pattern = "ERROR"
 
   metric_transformation {
-    name      = "db_error_connections"
-    namespace = "rds/log"
+    name      = "DBConnectionErrors"
+    namespace = "Lab/RDSApp"
     value     = "1"
   }
 }
 
 resource "aws_cloudwatch_metric_alarm" "db_alarm_tf" {
 
-  alarm_name = "db_alarm_aws"
+  alarm_name = "lab-db-connection-failure"
 
-  namespace = "rds/log"
+  namespace = "Lab/RDSApp"
 
-  metric_name = "db_error_connection"
+  metric_name = "DBConnectionErrors"
 
   statistic = "Sum"
 
-  period = 60
+  period = 300
 
   evaluation_periods = 1
 
-  threshold = 1
+  threshold = 3
 
   comparison_operator = "GreaterThanOrEqualToThreshold"
 
   treat_missing_data = "notBreaching"
+
+  alarm_actions = [aws_sns_topic.sns_db_error_tf.arn]
 
   alarm_description = "Alarm when database connection failures occur"
 }

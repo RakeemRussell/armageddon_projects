@@ -42,11 +42,11 @@ resource "aws_security_group" "sg_private_resource" {
 }
 ### PRIVATE INBOUND RULES
 resource "aws_vpc_security_group_ingress_rule" "ingress_port_3306_rule" {
-  security_group_id = aws_security_group.sg_private_resource.id
+  security_group_id            = aws_security_group.sg_private_resource.id
   referenced_security_group_id = aws_security_group.sg_ec2_lab.id
-  from_port         = 3306
-  ip_protocol       = "tcp"
-  to_port           = 3306
+  from_port                    = 3306
+  ip_protocol                  = "tcp"
+  to_port                      = 3306
 }
 ### PRIVATE OUTBOUND RULES
 resource "aws_vpc_security_group_egress_rule" "egress_all_ports_rule_private" {

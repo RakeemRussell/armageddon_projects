@@ -10,10 +10,10 @@ resource "aws_sns_topic" "sns_db_error_tf" {
 resource "aws_sns_topic_subscription" "email_alert" {
   topic_arn = aws_sns_topic.sns_db_error_tf.arn
   protocol  = "email"
-  endpoint  = var.error_alert
+  endpoint  = var.email_alert
 }
 
-variable "error_alert" {
+variable "alert_email" {
   description = "receives error notifications."
   type        = string
 }

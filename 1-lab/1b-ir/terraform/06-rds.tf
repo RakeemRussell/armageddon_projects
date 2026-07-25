@@ -13,7 +13,7 @@ resource "aws_db_instance" "mysql_rds_db" {
 
   db_name  = "notes_db"
   username = "admin"
-  password = "password123" 
+  password = "password123"
 
 
 

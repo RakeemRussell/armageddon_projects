@@ -12,8 +12,3 @@ resource "aws_sns_topic_subscription" "email_alert" {
   protocol  = "email"
   endpoint  = var.email_alert
 }
-
-variable "alert_email" {
-  description = "receives error notifications."
-  type        = string
-}

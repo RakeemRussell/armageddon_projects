@@ -1,8 +1,8 @@
 resource "aws_sns_topic" "sns_db_error_tf" {
-  name = "sns-topic-name"
+  name = "lab-db-incidents"
 
   tags = {
-    Name        = "sns-topic-name-tag"
+    Name        = "lab-db-incidents"
     Environment = "lab_ir"
   }
 }

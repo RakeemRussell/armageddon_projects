@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_log_group" "cloudwatch_log" {
-  name              = "/aws/ec2/lab-rds-app"
+  name              = "var.log_group_name"
   retention_in_days = 1
 }
 
@@ -32,7 +32,7 @@ resource "aws_cloudwatch_metric_alarm" "db_alarm_tf" {
 
   evaluation_periods = 1
 
-  threshold = 3
+  threshold = 2
 
   comparison_operator = "GreaterThanOrEqualToThreshold"
 

@@ -12,3 +12,4 @@ variable "log_group_name" {
   type    = string
   default = "/aws/ec2/lab-rds-app"
 }
+

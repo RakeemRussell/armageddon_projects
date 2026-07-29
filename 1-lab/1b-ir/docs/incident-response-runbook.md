@@ -342,3 +342,135 @@ Preventive action to prevent recurrence:
 - Correct recovery action used.
 - No redeploy, no guessing, no hardcoded credentials.
 - Clear incident summary submitted.
+
+## runbook
+
+*******************************************************************************************
+*******************************************************************************************
+Create an intentional failure with assistant acting as the group leader or auto-grader:
+$creds = aws sts assume-role --role-arn "arn:aws:iam::060214574171:role/lab-1b-incident-injector-role" --role-session-name lab-1b-incident-injection | ConvertFrom-Json
+$env:AWS_ACCESS_KEY_ID = $creds.Credentials.AccessKeyId
+$env:AWS_SECRET_ACCESS_KEY = $creds.Credentials.SecretAccessKey
+$env:AWS_SESSION_TOKEN = $creds.Credentials.SessionToken
+aws sts get-caller-identity
+
+
+# ----- Lab values you must fill in -----
+$region = "us-east-1"
+$secretId = "lab/rds/mysql"
+$dbInstanceId = "notes-db"
+$rdsSecurityGroupId = "sg-xxxxxxxxxxxxxxxxx"
+$mysqlSourceCidr = "10.0.0.0/16"
+$mysqlPort = 3306
+
+# ----- Randomly choose exactly one incident -----
+$incident = Get-Random -InputObject "secret-drift","network-isolation","db-interruption"
+
+# Optional: show only to injector/group leader, not student
+Write-Host "Selected incident: $incident"
+
+# ----- Inject the selected incident -----
+switch ($incident) {
+    "secret-drift" {
+        Write-Host "Injecting secret drift..."
+
+        aws secretsmanager put-secret-value `
+            --region $region `
+            --secret-id $secretId `
+            --secret-string '{"username":"admin","password":"wrong-lab-password"}'
+    }
+
+    "network-isolation" {
+        Write-Host "Injecting network isolation..."
+
+        aws ec2 revoke-security-group-ingress `
+            --region $region `
+            --group-id $rdsSecurityGroupId `
+            --protocol tcp `
+            --port $mysqlPort `
+            --cidr $mysqlSourceCidr
+    }
+
+    "db-interruption" {
+        Write-Host "Injecting DB interruption..."
+
+        aws rds stop-db-instance `
+            --region $region `
+            --db-instance-identifier $dbInstanceId
+    }
+}
+
+$appSecurityGroupId = "sg-yyyyyyyyyyyyyyyyy"
+
+aws ec2 revoke-security-group-ingress `
+    --region $region `
+    --group-id $rdsSecurityGroupId `
+    --ip-permissions "IpProtocol=tcp,FromPort=3306,ToPort=3306,UserIdGroupPairs=[{GroupId=$appSecurityGroupId}]"
+
+Write-Host "Incident injected. Start the runbook."
+*******************************************************************************************
+*******************************************************************************************
+Trigger the failure:
+curl <http://3.95.171.199/list> (x2)
+
+1.1 Confirm The Alarm and 7.6 Verify CloudWatch Alarm
+aws cloudwatch describe-alarms  --alarm-name-prefix db_alarm_aws
+aws cloudwatch describe-alarms  --alarm-name lab-db-connection-failure  --query "MetricAlarms[].StateValue"
+
+2.1 Check Application Error Logs or 7.5 Verify CloudWatch received it
+aws logs filter-log-events  --log-group-name /aws/ec2/lab-rds-app  --filter-pattern "ERROR"
+
+3.1 Retrieve Parameter Store Values and 7.7 Incident Recovery Verification After restoring correct credentials or connectivity
+aws ssm get-parameters  --names db_endpoint_parameter db_port_parameter db_name_parameter  --with-decryption
+
+3.2 Retrieve Secrets Manager Values or 7.2 Verify Secrets Manager Value
+  aws secretsmanager get-secret-value  --secret-id lab/rds/mysql/
+
+Section 5 - Recovery
+
+5.1 Credential Drift Recovery
+
+Option A: update Secrets Manager back to the known-good database password.
+aws secretsmanager put-secret-value \
+  --secret-id lab/rds/mysql \
+  --secret-string '{"username":"admin","password":"<KNOWN_GOOD_PASSWORD>"}'
+
+Option B: update the RDS master password to match Secrets Manager
+aws rds modify-db-instance \
+  --db-instance-identifier notes-db \
+  --master-user-password '<PASSWORD_FROM_SECRETS_MANAGER>' \
+  --apply-immediately
+
+5.2 Network Block Recovery
+
+aws ec2 describe-security-groups \
+  --filters "Name=group-name,Values=sg_ec2_lab,private_sg" \
+  --query "SecurityGroups[].{Name:GroupName,Id:GroupId}"
+
+aws ec2 authorize-security-group-ingress \
+  --group-id <RDS_SECURITY_GROUP_ID> \
+  --protocol tcp \
+  --port 3306 \
+  --source-group <EC2_SECURITY_GROUP_ID>
+
+5.3 DB Stopped Recovery
+
+aws rds start-db-instance \
+  --db-instance-identifier notes-db
+
+aws rds wait db-instance-available \
+  --db-instance-identifier notes-db
+
+Section 6 - Verify Recovery
+
+curl http://<EC2_PUBLIC_IP>/list
+
+6.2 Confirm Alarm Clears
+aws cloudwatch describe-alarms \
+  --alarm-name lab-db-connection-failure \
+  --query "MetricAlarms[].StateValue"
+
+6.3 Confirm Logs Normalize
+aws logs filter-log-events \
+  --log-group-name /aws/ec2/lab-rds-app \
+  --filter-pattern "ERROR"

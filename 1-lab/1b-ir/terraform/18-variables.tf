@@ -13,3 +13,15 @@ variable "log_group_name" {
   default = "/aws/ec2/lab-rds-app"
 }
 
+variable "aws_region" {
+  type = string
+}
+
+variable "secret_id" {
+  type = string
+}
+
+variable "db_instance_id" {
+  type = string
+}
+

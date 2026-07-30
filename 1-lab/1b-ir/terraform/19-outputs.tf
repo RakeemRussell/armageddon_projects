@@ -7,3 +7,23 @@ output "iam_role_auto_grader_arn" {
   description = "IAM role ARN to assume for temporary Lab 1b incident injection."
   value       = aws_iam_role.auto_grader.arn
 }
+
+output "gcp_region" {
+  value = var.aws_region
+}
+
+output "gcp_secret_id" {
+  value = aws_secretsmanager_secret.db_secret.name
+}
+
+output "db_instance_id" {
+  value = aws_db_instance.mysql_rds_db.id
+}
+
+output "rds_security_group_id" {
+  value = aws_security_group.sg_private_resource.id
+}
+
+output "ec2SecurityGroupId" {
+  value = aws_security_group.sg_ec2_lab.id
+}

@@ -32,7 +32,9 @@ import os
 import boto3
 import pymysql
 import logging
+
 from flask import Flask, request
+
 
 logging.basicConfig(
     filename="/var/log/rdsapp.log",
@@ -43,116 +45,271 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 SECRET_ID = os.environ.get("SECRET_ID")
 
-secrets = boto3.client("secretsmanager", region_name=REGION)
-ssm = boto3.client("ssm", region_name=REGION)
+
+secrets = boto3.client(
+    "secretsmanager",
+    region_name=REGION
+)
+
+ssm = boto3.client(
+    "ssm",
+    region_name=REGION
+)
+
 
 def get_parameter(name):
-    response = ssm.get_parameter(Name=name)
+    response = ssm.get_parameter(
+        Name=name
+    )
+
     return response["Parameter"]["Value"]
 
-def get_db_creds():
-    resp = secrets.get_secret_value(SecretId=SECRET_ID)
-    s = json.loads(resp["SecretString"])
 
-    s["host"] = get_parameter("db_endpoint_parameter")
-    s["port"] = get_parameter("db_port_parameter")
-    s["dbname"] = get_parameter("db_name_parameter")
-    return s
+
+def get_db_creds():
+
+    response = secrets.get_secret_value(
+        SecretId=SECRET_ID
+    )
+
+    secret = json.loads(
+        response["SecretString"]
+    )
+
+    secret["host"] = get_parameter(
+        "db_endpoint_parameter"
+    )
+
+    secret["port"] = get_parameter(
+        "db_port_parameter"
+    )
+
+    secret["dbname"] = get_parameter(
+        "db_name_parameter"
+    )
+
+    return secret
+
+
 
 def get_conn():
-    c = get_db_creds()
-    host = c["host"]
-    user = c["username"]
-    password = c["password"]
-    port = int(c["port"])
-    db = c["dbname"]
 
     try:
+
+        creds = get_db_creds()
+
         return pymysql.connect(
-            host=host,
-            user=user,
-            password=password,
-            port=port,
-            database=db,
+            host=creds["host"],
+            user=creds["username"],
+            password=creds["password"],
+            port=int(creds["port"]),
+            database=creds["dbname"],
             autocommit=True
         )
-    except Exception:
-        logger.exception("Database connection failed")
+
+
+    except pymysql.err.OperationalError as e:
+
+        error = str(e)
+
+
+        if "Access denied" in error:
+
+            logger.exception(
+                "DB_AUTH_FAILURE: Database authentication failed"
+            )
+
+
+        elif "Can't connect" in error:
+
+            logger.exception(
+                "DB_CONNECTION_FAILURE: Database network connection failed"
+            )
+
+
+        elif "timed out" in error:
+
+            logger.exception(
+                "DB_TIMEOUT_FAILURE: Database connection timed out"
+            )
+
+
+        else:
+
+            logger.exception(
+                "DB_UNKNOWN_FAILURE: Unknown database failure"
+            )
+
+
         raise
 
-logger.info("RDS application started")
+
+
+logger.info(
+    "RDS application started"
+)
+
+
 app = Flask(__name__)
+
+
 
 @app.route("/")
 def home():
-    logger.info("Home page requested")
+
+    logger.info(
+        "Home page requested"
+    )
+
     return """
     <h2>EC2 → RDS Notes App</h2>
-    <p>POST /add?note=hello</p>
-    <p>GET /list</p>
+    <p>/add?note=test</p>
+    <p>/list</p>
     """
 
 @app.route("/init")
 def init_db():
-    logger.info("Initializing database")
-    c = get_db_creds()
-    host = c["host"]
-    user = c["username"]
-    password = c["password"]
-    port = int(c["port"])
-    db = c["dbname"]
 
-    # connect without specifying a DB first
-    conn = pymysql.connect(host=host, user=user, password=password, port=port, autocommit=True)
-    cur = conn.cursor()
-    cur.execute(f"CREATE DATABASE IF NOT EXISTS `{db}`;")
-    cur.execute(f"USE `{db}`;")
+    logger.info(
+        "Initializing database"
+    )
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS notes (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            note VARCHAR(255) NOT NULL
-        );
-    """)
-    cur.close()
-    conn.close()
-    return f"Initialized {db} + notes table."
+    try:
 
-@app.route("/add", methods=["POST", "GET"])
+        creds = get_db_creds()
+
+        conn = pymysql.connect(
+            host=creds["host"],
+            user=creds["username"],
+            password=creds["password"],
+            port=int(creds["port"]),
+            autocommit=True
+        )
+
+
+        cur = conn.cursor()
+
+
+        cur.execute(
+            f"CREATE DATABASE IF NOT EXISTS `{creds['dbname']}`;"
+        )
+
+
+        cur.execute(
+            f"USE `{creds['dbname']}`;"
+        )
+
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS notes (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                note VARCHAR(255) NOT NULL
+            );
+            """
+        )
+
+
+        cur.close()
+        conn.close()
+
+
+        logger.info(
+            "Database initialized successfully"
+        )
+
+
+        return f"Initialized {creds['dbname']} + notes table"
+
+
+    except Exception:
+
+        logger.exception(
+            "DB_INITIALIZATION_FAILURE"
+        )
+
+        raise
+
+
+
+@app.route("/add", methods=["GET","POST"])
 def add_note():
-    
-    note = request.args.get("note", "").strip()
-    logger.info(f"Adding note: {note}")
+
+    note = request.args.get(
+        "note",
+        ""
+    ).strip()
+
+
     if not note:
-        return "Missing note param. Try: /add?note=hello", 400
+
+        return "Missing note",400
+
+
+    logger.info(
+        "Adding note"
+    )
+
+
     conn = get_conn()
+
     cur = conn.cursor()
-    cur.execute("INSERT INTO notes(note) VALUES(%s);", (note,))
+
+    cur.execute(
+        "INSERT INTO notes(note) VALUES(%s)",
+        (note,)
+    )
+
+
     cur.close()
+
     conn.close()
-    return f"Inserted note: {note}"
+
+
+    return "Inserted note"
+
+
 
 @app.route("/list")
 def list_notes():
-    logger.info("Listing notes")
+
+    logger.info(
+        "Listing notes"
+    )
+
+
     conn = get_conn()
+
     cur = conn.cursor()
-    cur.execute("SELECT id, note FROM notes ORDER BY id DESC;")
+
+
+    cur.execute(
+        "SELECT id,note FROM notes ORDER BY id DESC"
+    )
+
+
     rows = cur.fetchall()
+
+
     cur.close()
+
     conn.close()
-    out = "<h3>Notes</h3><ul>"
-    for r in rows:
-        out += f"<li>{r[0]}: {r[1]}</li>"
-    out += "</ul>"
-    return out
+
+
+    return str(rows)
+
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+
+    app.run(
+        host="0.0.0.0",
+        port=80
+    )
+
 PY
 
 cat >/etc/systemd/system/rdsapp.service <<'SERVICE'

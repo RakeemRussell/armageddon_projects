@@ -1,7 +1,7 @@
 
 
 resource "aws_db_instance" "mysql_rds_db" {
-  identifier = "notes-db"
+  identifier = var.db_instance_id
 
   allocated_storage = 20
   storage_type      = "gp3"

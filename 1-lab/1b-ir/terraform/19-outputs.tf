@@ -27,3 +27,8 @@ output "rds_security_group_id" {
 output "ec2SecurityGroupId" {
   value = aws_security_group.sg_ec2_lab.id
 }
+
+output "ec2_public_ipv4" {
+  description = "Public IPv4 address of the EC2 instance"
+  value       = aws_instance.ec2_public.public_ip
+}

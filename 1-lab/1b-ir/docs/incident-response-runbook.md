@@ -354,7 +354,6 @@ $env:AWS_SECRET_ACCESS_KEY = $creds.Credentials.SecretAccessKey
 $env:AWS_SESSION_TOKEN = $creds.Credentials.SessionToken
 aws sts get-caller-identity
 
-
 # ----- Lab values you must fill in -----
 $region = "us-east-1"
 $secretId = "lab/rds/mysql"
@@ -474,3 +473,9 @@ aws cloudwatch describe-alarms \
 aws logs filter-log-events \
   --log-group-name /aws/ec2/lab-rds-app \
   --filter-pattern "ERROR"
+
+$creds = aws sts assume-role --role-arn "arn:aws:iam::060214574171:user/AWSCLI" --role-session-name lab-1b-incident-injection | ConvertFrom-Json
+$env:AWS_ACCESS_KEY_ID = $creds.Credentials.AccessKeyId
+$env:AWS_SECRET_ACCESS_KEY = $creds.Credentials.SecretAccessKey
+$env:AWS_SESSION_TOKEN = $creds.Credentials.SessionToken
+aws sts get-caller-identity

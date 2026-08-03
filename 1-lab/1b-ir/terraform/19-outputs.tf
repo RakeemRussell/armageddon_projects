@@ -16,8 +16,10 @@ output "gcp_secret_id" {
   value = aws_secretsmanager_secret.db_secret.name
 }
 
+
+
 output "db_instance_id" {
-  value = aws_db_instance.mysql_rds_db.id
+  value = aws_db_instance.mysql_rds_db.identifier
 }
 
 output "rds_security_group_id" {

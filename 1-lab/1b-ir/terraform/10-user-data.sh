@@ -123,17 +123,17 @@ def get_conn():
             )
 
 
-        elif "Can't connect" in error:
-
-            logger.exception(
-                "DB_CONNECTION_FAILURE: Database network connection failed"
-            )
-
-
         elif "timed out" in error:
 
             logger.exception(
                 "DB_TIMEOUT_FAILURE: Database connection timed out"
+            )
+
+
+        elif "Can't connect" in error:
+
+            logger.exception(
+                "DB_CONNECTION_FAILURE: Database network connection failed"
             )
 
 
@@ -143,6 +143,15 @@ def get_conn():
                 "DB_UNKNOWN_FAILURE: Unknown database failure"
             )
 
+
+        raise
+
+
+    except Exception:
+
+        logger.exception(
+            "DB_AUTH_FAILURE: Failed to retrieve or parse database credentials"
+        )
 
         raise
 

@@ -90,7 +90,7 @@ resource "aws_cloudwatch_metric_alarm" "db_auth_alarm" {
   statistic = "Sum"
 
 
-  period = 300
+  period = 60
 
 
   evaluation_periods = 1
@@ -129,7 +129,7 @@ resource "aws_cloudwatch_metric_alarm" "db_connection_alarm" {
   statistic = "Sum"
 
 
-  period = 300
+  period = 60
 
 
   evaluation_periods = 1
@@ -170,7 +170,7 @@ resource "aws_cloudwatch_metric_alarm" "db_timeout_alarm" {
   statistic = "Sum"
 
 
-  period = 300
+  period = 60
 
 
   evaluation_periods = 1

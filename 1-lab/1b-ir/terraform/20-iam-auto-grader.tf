@@ -58,6 +58,19 @@ data "aws_iam_policy_document" "incident_injector_policy" {
   }
 
   statement {
+    sid    = "AllowCredentialRecoveryOnLabDatabase"
+    effect = "Allow"
+
+    actions = [
+      "rds:ModifyDBInstance"
+    ]
+
+    resources = [
+      aws_db_instance.mysql_rds_db.arn
+    ]
+  }
+
+  statement {
     sid    = "AllowSecretDriftOnlyOnLabSecret"
     effect = "Allow"
 

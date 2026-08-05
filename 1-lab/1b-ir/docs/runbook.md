@@ -102,8 +102,8 @@ curl http://<EC2_PUBLIC_IP>/list (X2)
 
 ## SNS_Alert_Channel_SNS_Topic_Name
 
-**CloudWatch Alarm → SNS Alarm**
-![pic](/1b-ir/docs/screenshots/sns_alert_email.png)  
+**CloudWatch Alarm → SNS Alarm**  
+<img width="1228" height="730" alt="image" src="https://github.com/user-attachments/assets/c1f70bb7-e472-49fb-87a9-8c6429ed2f63" />  
 **Expected:** Alarm transitions to ALARM SNS notification sent to email.
 ---
 

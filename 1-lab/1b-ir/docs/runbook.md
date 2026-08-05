@@ -45,7 +45,7 @@ aws sts get-caller-identity
 ```
 
 📸 *Screenshot:  
-![pic](/1b-ir/docs/screenshots/assumed_injector_role_powershell.png)  
+<img width="1393" height="484" alt="image" src="https://github.com/user-attachments/assets/2fd78764-a20e-4bff-a202-45575cf96547" />
 
  — `get-caller-identity` output confirming the assumed role*
 
@@ -93,7 +93,7 @@ curl http://<EC2_PUBLIC_IP>/list (X2)
 ```
 
 📸 *Screenshot:  
-![pic](/1b-ir/docs/screenshots/failure_trigger.png)  
+<img width="1232" height="158" alt="image" src="https://github.com/user-attachments/assets/23035ff8-69a5-4581-8773-c20e38329978" />
 — terminal output showing the app now returning a 500 error*
 
 ---
@@ -120,7 +120,7 @@ aws cloudwatch describe-alarms --alarm-names lab-db-timeout-failure --query "Met
 **Expected:** One of the three alarms shows `ALARM`.
 
 📸 *Screenshot:  
-![pic](/1b-ir/docs/screenshots/confirm_alert.png)  
+<img width="1250" height="311" alt="image" src="https://github.com/user-attachments/assets/de52d109-d381-4f7c-8ee8-c1614623097c" />
 — CLI output showing the fired alarm's state*
 
 ---
@@ -138,7 +138,7 @@ aws logs filter-log-events \
 **Expected:** Clear DB connection failure messages (`DB_AUTH_FAILURE`, `DB_CONNECTION_FAILURE`, or `DB_TIMEOUT_FAILURE`).
 
 📸 *Screenshot:  
-![pic](/1b-ir/docs/screenshots/check_app_logs.png)  
+<img width="1580" height="600" alt="image" src="https://github.com/user-attachments/assets/d8ae6cb6-64d2-4f00-ad01-61bf4277a10e" /> 
  — filtered log output showing the classified error message*
 
 **2.2 Identify Failure Type**
@@ -167,8 +167,7 @@ aws ssm get-parameters --names db_name_parameter --with-decryption
 **Expected:** Endpoint + port returned.
 
 📸 *Screenshot:  
-![pic](/1b-ir/docs/screenshots/retrieve_parameter_values.png)
-
+<img width="1060" height="1042" alt="image" src="https://github.com/user-attachments/assets/dd361699-0d0f-49fd-85ea-70a214c42c6c" />
 **3.2 Retrieve Secrets Manager Values**
 
 ```bash
@@ -177,7 +176,8 @@ aws secretsmanager get-secret-value --secret-id lab/rds/mysql/
 
 **Expected:** Username/password visible. Compare against known-good state.
 
-📸 *Screenshot: ![pic](/1b-ir/docs/screenshots/retrieve_secrets_manager_values.png)*
+📸 *Screenshot:  
+<img width="1060" height="251" alt="image" src="https://github.com/user-attachments/assets/9d1ecce2-b1d5-4c0e-9086-782df8db83dc" />
 
 ---
 
@@ -242,7 +242,8 @@ aws rds wait db-instance-available \
 ```
 
 📸 *Screenshot:  
-![pic](/1b-ir/docs/screenshots/retrieve_secrets_manager_values.png) — CLI output of whichever recovery command was actually used*
+<img width="1060" height="251" alt="image" src="https://github.com/user-attachments/assets/7594f5ad-f8e8-421c-a3a3-64c6fe17f2ee" />  
+— CLI output of recovery command
 
 **Verify Recovery**
 
@@ -252,7 +253,8 @@ curl http://<EC2_PUBLIC_IP>/list
 
 **Expected:** Application returns data, no errors.
 
-📸 *Screenshot: ![pic](/1b-ir/docs/screenshots/recovery_verified.png)*
+📸 *Screenshot:  
+<img width="714" height="44" alt="image" src="https://github.com/user-attachments/assets/9eb01b7f-7ab5-43e4-980c-47bf0167eaed" />
 
 ---
 
@@ -271,7 +273,7 @@ aws cloudwatch describe-alarms --alarm-names lab-db-timeout-failure --query "Met
 **Expected:** `OK` (allow time for the next evaluation period after recovery).
 
 📸 *Screenshot:  
-![`screenshots/troubleshooting/11-alarm-cleared.png`](screenshots/cleared_alarm.png)*
+<img width="1156" height="297" alt="image" src="https://github.com/user-attachments/assets/65c54878-33bb-403e-85e9-06c3b691a047" />  
 
 **6.2 Confirm Logs Normalize**  
 Why I changed the filter: the original --filter-pattern "ERROR" matches any log line at ERROR level — including unrelated internet scanning traffic hitting the public EC2 IP (malformed requests logged as code 400 errors), not just real database failures. That noise could produce a false "still seeing errors" reading even after the incident was fully resolved. Narrowing the filter to "DB_" matches only the application's own classified failure messages (DB_AUTH_FAILURE, DB_CONNECTION_FAILURE, DB_TIMEOUT_FAILURE), and adding --start-time scopes the check to only what happened after the recovery action — so an empty result set is a reliable confirmation that the fix worked, not just an artifact of what got filtered out.
@@ -290,8 +292,7 @@ aws logs filter-log-events \
 
 
 📸 *Screenshot:  
-![`screenshots/troubleshooting/11-alarm-cleared.png`](/1b-ir/docs/screenshots/confirm_logs_normalize.png)*
-
+<img width="524" height="164" alt="image" src="https://github.com/user-attachments/assets/47fb66ae-c462-46a2-8bf5-f30e63d19691" />  
 ---
 
 ## Incident Summary

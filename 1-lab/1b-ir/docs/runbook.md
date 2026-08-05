@@ -19,11 +19,11 @@ curl http://<EC2_PUBLIC_IP>/list
 **Expected:** All notes returned, no errors.
 
 📸 *Screenshot:  
-![pic](/1b-ir/docs/screenshots/pre_incident_baseline_1.png)  
-![pic](/1b-ir/docs/screenshots/pre_incident_baseline_2.png)  
-![pic](/1b-ir/docs/screenshots/pre_incident_baseline_3.png)  
-![pic](/1b-ir/docs/screenshots/pre_incident_baseline_4.png)  
-![pic](/1b-ir/docs/screenshots/pre_incident_baseline_5.png)
+<img width="440" height="44" alt="image" src="https://github.com/user-attachments/assets/fe43932f-d0c5-4436-9c1d-d892a695819e" />
+<img width="580" height="44" alt="image" src="https://github.com/user-attachments/assets/fb22b386-b0b9-49bf-8335-f8d6a16037e2" />
+<img width="580" height="43" alt="image" src="https://github.com/user-attachments/assets/fce3b752-84b9-4cb7-9b89-6e608f664c62" />
+<img width="676" height="46" alt="image" src="https://github.com/user-attachments/assets/c86b1d04-f64b-4ea0-b54b-cd5bf79aa624" />
+<img width="783" height="51" alt="image" src="https://github.com/user-attachments/assets/64b083c2-c4ef-483f-a3f1-7537c2889c2c" />
 
 — terminal output showing successful `/init`, `/add`, and `/list` calls*
 

@@ -221,7 +221,7 @@ aws rds modify-db-instance \
 
 ```bash
 aws ec2 describe-security-groups \
-  --filters "Name=group-name,Values=sg_ec2_lab,private_sg" \
+  --filters "Name=group-name,Values=public_sg,private_sg" \
   --query "SecurityGroups[].{Name:GroupName,Id:GroupId}"
 
 aws ec2 authorize-security-group-ingress \

@@ -192,14 +192,14 @@ First, identify the security group IDs:
 
 ```sh
 aws ec2 describe-security-groups \
-  --filters "Name=group-name,Values=sg_ec2_lab,private_sg" \
+  --filters "Name=group-name,Values=public_sg,private_sg" \
   --query "SecurityGroups[].{Name:GroupName,Id:GroupId}"
 ```
 
 Line-by-line:
 
 - `aws ec2 describe-security-groups`: reads security group configuration.
-- `--filters "Name=group-name,Values=sg_ec2_lab,private_sg"`: returns only the EC2 and RDS lab security groups.
+- `--filters "Name=group-name,Values=public_sg,private_sg"`: returns only the EC2 and RDS lab security groups.
 - `--query "SecurityGroups[].{Name:GroupName,Id:GroupId}"`: prints just the group names and IDs.
 
 Then restore MySQL access from EC2 to RDS:
@@ -443,7 +443,7 @@ aws rds modify-db-instance \
 5.2 Network Block Recovery
 
 aws ec2 describe-security-groups \
-  --filters "Name=group-name,Values=sg_ec2_lab,private_sg" \
+  --filters "Name=group-name,Values=public_sg,private_sg" \
   --query "SecurityGroups[].{Name:GroupName,Id:GroupId}"
 
 aws ec2 authorize-security-group-ingress \

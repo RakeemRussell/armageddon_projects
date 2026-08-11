@@ -25,3 +25,7 @@ variable "db_instance_id" {
   type = string
 }
 
+variable "private_ami_id" {
+  description = "Golden AMI ID for the Bonus-A private EC2, baked from the provisioned public instance."
+  type        = string
+}

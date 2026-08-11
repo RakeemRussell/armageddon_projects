@@ -27,7 +27,7 @@ output "rds_security_group_id" {
 }
 
 output "ec2SecurityGroupId" {
-  value = aws_security_group.sg_ec2_lab.id
+  value = aws_security_group.public_sg.id
 }
 
 output "ec2_public_ipv4" {

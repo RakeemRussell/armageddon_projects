@@ -7,7 +7,7 @@ resource "aws_instance" "ec2_public" {
   user_data = templatefile("${path.module}/10-user-data.sh", {
     secret_id = aws_secretsmanager_secret.db_secret.name
   })
-  vpc_security_group_ids = [aws_security_group.sg_ec2_lab.id]
+  vpc_security_group_ids = [aws_security_group.public_sg.id]
   tags = {
     Name = "ec2_public"
   }

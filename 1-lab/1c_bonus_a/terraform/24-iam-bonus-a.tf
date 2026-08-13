@@ -29,3 +29,40 @@ resource "aws_iam_instance_profile" "ec2_private_profile" {
   name = "notes-ec2-private-profile"
   role = aws_iam_role.ec2_notes_private_role.name
 }
+
+### CodeArtifact access - lets pip authenticate against the pip mirror and
+# pull packages, without any broader CodeArtifact or IAM permissions.
+resource "aws_iam_role_policy" "codeartifact_access" {
+  name = "codeartifact-pip-access"
+  role = aws_iam_role.ec2_notes_private_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "codeartifact:GetAuthorizationToken",
+          "codeartifact:GetRepositoryEndpoint",
+          "codeartifact:ReadFromRepository"
+        ]
+        Resource = [
+          aws_codeartifact_domain.lab_domain.arn,
+          aws_codeartifact_repository.pip_mirror.arn
+        ]
+      },
+      {
+        # CodeArtifact auth tokens are minted through STS. Scoped so this
+        # role can only get a bearer token for CodeArtifact - nothing else.
+        Effect   = "Allow"
+        Action   = "sts:GetServiceBearerToken"
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "sts:AWSServiceName" = "codeartifact.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+}

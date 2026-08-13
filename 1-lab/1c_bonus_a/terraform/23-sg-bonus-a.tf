@@ -8,7 +8,6 @@ data "aws_prefix_list" "s3_prefix_list" {
 # No inbound rules at all. Session Manager reaches the instance through the
 # SSM agent's outbound tunnel to the SSM/EC2Messages/SSMMessages endpoints,
 # not through an inbound listener, so nothing needs to open a port to reach it.
-
 resource "aws_security_group" "sg_ec2_private_bonus_a" {
   name        = "sg_ec2_private_bonus_a"
   description = "Bonus-A private EC2 - no inbound, SSM-only access"
@@ -34,10 +33,10 @@ resource "aws_vpc_security_group_egress_rule" "egress_443_to_endpoints" {
 # repos, and any future S3 access), without opening egress to the internet.
 resource "aws_vpc_security_group_egress_rule" "egress_443_to_s3" {
   security_group_id = aws_security_group.sg_ec2_private_bonus_a.id
-  prefix_list_id     = data.aws_prefix_list.s3_prefix_list.id
-  from_port          = 443
-  ip_protocol        = "tcp"
-  to_port            = 443
+  prefix_list_id    = data.aws_prefix_list.s3_prefix_list.id
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
 }
 
 # 3306 to RDS so the app can reach the database.
@@ -50,12 +49,15 @@ resource "aws_vpc_security_group_egress_rule" "egress_3306_to_rds" {
 }
 
 ### VPC ENDPOINTS SECURITY GROUP (Bonus-A)
-# Attached to all 5 interface endpoints. Only needs an inbound rule - SGs
-# are stateful, so once the private EC2's 443 request is allowed in, the
-# response is automatically permitted back out without a matching egress rule.
+# private_dns_enabled = true on these endpoints overrides AWS API DNS
+# resolution (ssm., secretsmanager., logs., etc.) for the WHOLE VPC, not
+# just the private subnets - so the public EC2 (sg_ec2_lab) now resolves
+# these hostnames to the endpoint too, even though it still has internet
+# access of its own. It needs to be allowed in here or every AWS API call
+# from the public instance times out.
 resource "aws_security_group" "sg_vpc_endpoints" {
   name        = "sg_vpc_endpoints"
-  description = "Bonus-A VPC interface endpoints - 443 from private EC2 only"
+  description = "Bonus-A VPC interface endpoints - 443 from both EC2 SGs (private_dns applies VPC-wide)"
   vpc_id      = aws_vpc.vpc_resource.id
 
   tags = {
@@ -66,6 +68,14 @@ resource "aws_security_group" "sg_vpc_endpoints" {
 resource "aws_vpc_security_group_ingress_rule" "ingress_443_from_private_ec2" {
   security_group_id            = aws_security_group.sg_vpc_endpoints.id
   referenced_security_group_id = aws_security_group.sg_ec2_private_bonus_a.id
+  from_port                    = 443
+  ip_protocol                  = "tcp"
+  to_port                      = 443
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ingress_443_from_public_ec2" {
+  security_group_id            = aws_security_group.sg_vpc_endpoints.id
+  referenced_security_group_id = aws_security_group.sg_ec2_lab.id
   from_port                    = 443
   ip_protocol                  = "tcp"
   to_port                      = 443

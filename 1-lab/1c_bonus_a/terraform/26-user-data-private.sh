@@ -1,8 +1,25 @@
 #!/bin/bash
-# NOTE: no dnf update, no dnf install amazon-cloudwatch-agent, no pip3 install.
-# All of that is already baked into the golden AMI (var.private_ami_id) that
-# this instance boots from - the private subnet has no path to PyPI, so this
-# script only configures and starts what's already on disk.
+# dnf reaches AL2023 repos via the S3 gateway endpoint - no NAT needed.
+dnf update -y
+dnf install -y python3-pip
+dnf install -y amazon-cloudwatch-agent
+systemctl stop amazon-cloudwatch-agent || true
+
+# Authenticate pip against the CodeArtifact mirror instead of PyPI directly.
+# CodeArtifact fetches from PyPI on AWS's own infrastructure - this instance
+# only ever talks to the codeartifact.api / codeartifact.repositories
+# interface endpoints, never the public internet.
+until aws codeartifact login --tool pip \
+  --domain ${codeartifact_domain} \
+  --domain-owner ${codeartifact_owner} \
+  --repository ${codeartifact_repo} \
+  --region ${aws_region}
+do
+    echo "Waiting for CodeArtifact endpoint access..."
+    sleep 10
+done
+
+pip3 install flask pymysql boto3
 
 # ==============================
 # cloudwatch agent configuration

@@ -12,18 +12,18 @@ resource "aws_security_group" "sg_alb_bonus_b" {
 ### ALB INBOUND RULES
 resource "aws_vpc_security_group_ingress_rule" "alb_ingress_80" {
   security_group_id = aws_security_group.sg_alb_bonus_b.id
-  cidr_ipv4          = "0.0.0.0/0"
-  from_port          = 80
-  ip_protocol        = "tcp"
-  to_port            = 80
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 80
+  ip_protocol       = "tcp"
+  to_port           = 80
 }
 
 resource "aws_vpc_security_group_ingress_rule" "alb_ingress_443" {
   security_group_id = aws_security_group.sg_alb_bonus_b.id
-  cidr_ipv4          = "0.0.0.0/0"
-  from_port          = 443
-  ip_protocol        = "tcp"
-  to_port            = 443
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
 }
 
 ### ALB OUTBOUND RULE

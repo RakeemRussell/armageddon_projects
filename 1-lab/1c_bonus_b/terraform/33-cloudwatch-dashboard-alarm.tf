@@ -11,11 +11,11 @@ resource "aws_cloudwatch_dashboard" "bonusb_dashboard" {
         width  = 12
         height = 6
         properties = {
-          title   = "ALB Request Count"
-          view    = "timeSeries"
-          region  = var.aws_region
-          stat    = "Sum"
-          period  = 60
+          title  = "ALB Request Count"
+          view   = "timeSeries"
+          region = var.aws_region
+          stat   = "Sum"
+          period = 60
           metrics = [
             ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", aws_lb.alb_bonus_b.arn_suffix]
           ]
@@ -28,11 +28,11 @@ resource "aws_cloudwatch_dashboard" "bonusb_dashboard" {
         width  = 12
         height = 6
         properties = {
-          title   = "ALB Target Response Time"
-          view    = "timeSeries"
-          region  = var.aws_region
-          stat    = "Average"
-          period  = 60
+          title  = "ALB Target Response Time"
+          view   = "timeSeries"
+          region = var.aws_region
+          stat   = "Average"
+          period = 60
           metrics = [
             ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", aws_lb.alb_bonus_b.arn_suffix]
           ]
@@ -45,11 +45,11 @@ resource "aws_cloudwatch_dashboard" "bonusb_dashboard" {
         width  = 12
         height = 6
         properties = {
-          title   = "Target Health (Healthy vs Unhealthy)"
-          view    = "timeSeries"
-          region  = var.aws_region
-          stat    = "Average"
-          period  = 60
+          title  = "Target Health (Healthy vs Unhealthy)"
+          view   = "timeSeries"
+          region = var.aws_region
+          stat   = "Average"
+          period = 60
           metrics = [
             ["AWS/ApplicationELB", "HealthyHostCount", "TargetGroup", aws_lb_target_group.tg_bonus_b.arn_suffix, "LoadBalancer", aws_lb.alb_bonus_b.arn_suffix],
             ["AWS/ApplicationELB", "UnHealthyHostCount", "TargetGroup", aws_lb_target_group.tg_bonus_b.arn_suffix, "LoadBalancer", aws_lb.alb_bonus_b.arn_suffix]
@@ -63,11 +63,11 @@ resource "aws_cloudwatch_dashboard" "bonusb_dashboard" {
         width  = 12
         height = 6
         properties = {
-          title   = "ALB 4xx / 5xx Errors"
-          view    = "timeSeries"
-          region  = var.aws_region
-          stat    = "Sum"
-          period  = 60
+          title  = "ALB 4xx / 5xx Errors"
+          view   = "timeSeries"
+          region = var.aws_region
+          stat   = "Sum"
+          period = 60
           metrics = [
             ["AWS/ApplicationELB", "HTTPCode_ELB_5XX_Count", "LoadBalancer", aws_lb.alb_bonus_b.arn_suffix],
             ["AWS/ApplicationELB", "HTTPCode_ELB_4XX_Count", "LoadBalancer", aws_lb.alb_bonus_b.arn_suffix]
@@ -85,7 +85,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx_alarm" {
   alarm_name          = "chewbacca-alb-5xx-spike"
   alarm_description   = "Triggers when the Bonus-B ALB returns a spike of 5xx errors"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods   = 1
+  evaluation_periods  = 1
   metric_name         = "HTTPCode_ELB_5XX_Count"
   namespace           = "AWS/ApplicationELB"
   period              = 60

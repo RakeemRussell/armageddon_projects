@@ -94,7 +94,7 @@ aws cloudwatch list-dashboards \
 
 **Expected result:** `chewbacca-bonusb-dashboard` listed
 
-**Actual result:** listed, `LastModified` confirmed, 4 widgets (request count, target response time, healthy/unhealthy host count, 4xx/5xx errors)
+**Actual result:** listed, `DashboardName` `DashboardArn` `LastModified`, `Size`
 
 ![alt text](screenshots/sc_6.png)
 

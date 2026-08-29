@@ -137,4 +137,7 @@ resource "aws_route53_record" "alb_cert_validation" {
 }
 
 ### WAIT FOR ALB CERT VALIDATION TO COMPLETE
-
+resource "aws_acm_certificate_validation" "alb_cert_validated" {
+  certificate_arn         = aws_acm_certificate.alb_cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.alb_cert_validation : record.fqdn]
+}

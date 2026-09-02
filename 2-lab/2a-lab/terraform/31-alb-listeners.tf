@@ -35,16 +35,18 @@ resource "aws_lb_listener" "https_forward" {
   }
 }
 
-### DNS: point app.bonusb.online at the ALB
+### DNS: point app.bonusb.online at CloudFront (not the ALB)
+# Lab 2a: the ALB is no longer public ingress - CloudFront is. This
+# record now aliases to the distribution instead of the ALB directly.
 resource "aws_route53_record" "app_alias" {
   zone_id = data.aws_route53_zone.bonusb_online.zone_id
   name    = "app.bonusb.online"
   type    = "A"
 
   alias {
-    name                   = aws_lb.alb_bonus_b.dns_name
-    zone_id                = aws_lb.alb_bonus_b.zone_id
-    evaluate_target_health = true
+    name                   = aws_cloudfront_distribution.bonusb_cf01.domain_name
+    zone_id                = aws_cloudfront_distribution.bonusb_cf01.hosted_zone_id
+    evaluate_target_health = false
   }
 }
 

@@ -327,3 +327,104 @@ resource "aws_wafv2_web_acl" "waf_cf_bonusb01" {
 # delete the old aws_wafv2_web_acl_association.waf_alb_association and
 # aws_wafv2_web_acl.waf_bonus_b resources from 32-waf.tf - WAF no longer
 # belongs on the ALB once CloudFront is the public ingress.
+
+##############################################
+# CloudFront distribution: sole public ingress
+##############################################
+
+### CLOUDFRONT DISTRIBUTION IN FRONT OF THE ALB
+# Origin is the ALB's DNS name over HTTPS only. The custom header carries
+# the same secret value the listener rules check for, so only requests
+# that actually passed through this specific distribution get forwarded
+# by the ALB. WAF is attached here (CLOUDFRONT scope), not on the ALB.
+resource "aws_cloudfront_distribution" "bonusb_cf01" {
+  enabled         = true
+  is_ipv6_enabled = true
+  comment         = "bonusb-cf01"
+
+  origin {
+    origin_id   = "bonusb-alb-origin01"
+    domain_name = aws_lb.alb_bonus_b.dns_name
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+
+    custom_header {
+      name  = "X-Bonusb-Origin-Verify"
+      value = random_password.origin_header_value.result
+    }
+  }
+
+  default_cache_behavior {
+    target_origin_id       = "bonusb-alb-origin01"
+    viewer_protocol_policy = "redirect-to-https"
+
+    allowed_methods = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods  = ["GET", "HEAD"]
+
+    # Using the legacy forwarded_values block to match the lab's base
+    # template. This is deprecated in favor of cache_policy_id /
+    # origin_request_policy_id but still functional - the honors
+    # lab2b_cache_correctness.tf file appears to cover the modern
+    # replacement, worth revisiting once we look at the honors files.
+    forwarded_values {
+      query_string = true
+      headers      = ["*"]
+      cookies {
+        forward = "all"
+      }
+    }
+  }
+
+  web_acl_id = aws_wafv2_web_acl.waf_cf_bonusb01.arn
+
+  aliases = [
+    "bonusb.online",
+    "app.bonusb.online"
+  ]
+
+  viewer_certificate {
+    acm_certificate_arn      = aws_acm_certificate_validation.cf_cert_validated.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+}
+
+##############################################
+# Route53: point domain to CloudFront, not the ALB
+##############################################
+
+### APEX RECORD (bonusb.online -> CloudFront)
+# No apex/root record existed before this lab - only app.bonusb.online
+# was aliased (to the ALB). This is new.
+resource "aws_route53_record" "apex_to_cf" {
+  zone_id = data.aws_route53_zone.bonusb_online.zone_id
+  name    = "bonusb.online"
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.bonusb_cf01.domain_name
+    zone_id                = aws_cloudfront_distribution.bonusb_cf01.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# NOTE: the existing aws_route53_record.app_alias in 31-alb-listeners.tf
+# currently points app.bonusb.online at the ALB. Don't add a third,
+# competing record here - instead, edit that existing resource in place:
+# change its `alias` block to reference
+#   aws_cloudfront_distribution.bonusb_cf01.domain_name
+#   aws_cloudfront_distribution.bonusb_cf01.hosted_zone_id
+# instead of the ALB's dns_name / zone_id. Two aws_route53_record
+# resources with the same name+type in the same zone will conflict in
+# Terraform state, not just in AWS.

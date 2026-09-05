@@ -6,8 +6,8 @@
 resource "aws_cloudfront_cache_policy" "chewbacca_cache_static01" {
   name        = "${var.project_name}-cache-static01"
   comment     = "Aggressive caching for /static/*"
-  default_ttl = 86400        # 1 day
-  max_ttl     = 31536000     # 1 year
+  default_ttl = 86400    # 1 day
+  max_ttl     = 31536000 # 1 year
   min_ttl     = 0
 
   parameters_in_cache_key_and_forwarded_to_origin {
@@ -121,8 +121,8 @@ default_cache_behavior {
   target_origin_id       = "${var.project_name}-alb-origin01"
   viewer_protocol_policy = "redirect-to-https"
 
-  allowed_methods = ["GET","HEAD","OPTIONS","PUT","POST","PATCH","DELETE"]
-  cached_methods  = ["GET","HEAD"]
+  allowed_methods = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+  cached_methods  = ["GET", "HEAD"]
 
   cache_policy_id          = aws_cloudfront_cache_policy.chewbacca_cache_api_disabled01.id
   origin_request_policy_id = aws_cloudfront_origin_request_policy.chewbacca_orp_api01.id
@@ -134,8 +134,8 @@ ordered_cache_behavior {
   target_origin_id       = "${var.project_name}-alb-origin01"
   viewer_protocol_policy = "redirect-to-https"
 
-  allowed_methods = ["GET","HEAD","OPTIONS"]
-  cached_methods  = ["GET","HEAD"]
+  allowed_methods = ["GET", "HEAD", "OPTIONS"]
+  cached_methods  = ["GET", "HEAD"]
 
   cache_policy_id            = aws_cloudfront_cache_policy.chewbacca_cache_static01.id
   origin_request_policy_id   = aws_cloudfront_origin_request_policy.chewbacca_orp_static01.id

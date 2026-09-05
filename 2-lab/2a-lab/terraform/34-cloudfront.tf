@@ -23,3 +23,20 @@ resource "aws_vpc_security_group_ingress_rule" "alb_sg_ingress_rule" {
   ip_protocol        = "tcp"
   to_port            = 443
 }
+
+resource "aws_lb_listener_rule" "origin_header01_listener_rule" {
+  listener_arn = aws_lb_listener.http_redirect.arn
+  priority     = 10
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tg_bonus_b.arn
+  }
+
+  condition {
+    http_header {
+      http_header_name = "cloudfront_header_name"
+      values           = [random_password.secret_header_value.result]
+    }
+  }
+}

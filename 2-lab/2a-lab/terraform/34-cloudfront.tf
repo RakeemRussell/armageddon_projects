@@ -35,7 +35,7 @@ resource "aws_lb_listener_rule" "origin_header01_listener_rule" {
 
   condition {
     http_header {
-      http_header_name = "cloudfront_header_name"
+      http_header_name = "cloudfront-header-name"
       values           = [random_password.secret_header_value.result]
     }
   }

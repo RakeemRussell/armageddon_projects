@@ -25,7 +25,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_sg_ingress_rule" {
 }
 
 resource "aws_lb_listener_rule" "origin_header01_listener_rule" {
-  listener_arn = aws_lb_listener.http_redirect.arn
+  listener_arn = aws_lb_listener.https_forward.arn
   priority     = 10
 
   action {

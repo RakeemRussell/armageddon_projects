@@ -40,3 +40,23 @@ resource "aws_lb_listener_rule" "origin_header01_listener_rule" {
     }
   }
 }
+
+resource "aws_lb_listener_rule" "origin_header01_listener_rule_catch_all" {
+  listener_arn = aws_lb_listener.https_forward.arn
+  priority     = 90
+
+  action {
+    type = "fixed-response"
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "nope, access forbidden"
+      status_code  = "403"
+    }
+  }
+
+  condition {
+    path_pattern {
+      values = ["*"]
+    }
+  }
+}

@@ -9,12 +9,13 @@
 data "aws_ec2_managed_prefix_list" "cloudfront_origin_facing" {
   name = "com.amazonaws.global.cloudfront.origin-facing"
 }
+
 ### ALB SG INGRESS: ONLY FROM CLOUDFRONT (Layer 1 of origin cloaking)
 # Restricts the ALB's security group to only accept HTTPS traffic from
 # IPs in the CloudFront origin-facing prefix list above. Not airtight on
 # its own - anyone can point their own CloudFront distribution at this
 # ALB's DNS name and still pass this check, since their IPs are in the
-# same shared prefix list. Layer 2 (secret header, next step) is what
+# same shared prefix list. Layer 2 (secret header, below) is what
 # actually proves the request came through *our* distribution.
 resource "aws_vpc_security_group_ingress_rule" "alb_sg_ingress_rule" {
   security_group_id = aws_security_group.sg_alb_bonus_b.id
@@ -24,6 +25,22 @@ resource "aws_vpc_security_group_ingress_rule" "alb_sg_ingress_rule" {
   to_port            = 443
 }
 
+##############################################
+# Secret origin header: second defense-in-depth layer
+##############################################
+
+### RANDOM SECRET VALUE
+# CloudFront's origin config (built later) will inject this as a custom
+# header on every request it sends to the ALB. The ALB only forwards
+# requests carrying the matching value - this is what actually proves a
+# request came through *our* distribution specifically, since the SG
+# rule above can't distinguish our distribution from anyone else's.
+resource "random_password" "secret_header_value" {
+  length  = 32
+  special = false
+}
+
+### LISTENER RULE: HEADER MATCH -> FORWARD (evaluated first, priority 10)
 resource "aws_lb_listener_rule" "origin_header01_listener_rule" {
   listener_arn = aws_lb_listener.https_forward.arn
   priority     = 10
@@ -41,6 +58,7 @@ resource "aws_lb_listener_rule" "origin_header01_listener_rule" {
   }
 }
 
+### LISTENER RULE: CATCH-ALL -> FIXED 403 (evaluated after, priority 90)
 resource "aws_lb_listener_rule" "origin_header01_listener_rule_catch_all" {
   listener_arn = aws_lb_listener.https_forward.arn
   priority     = 90

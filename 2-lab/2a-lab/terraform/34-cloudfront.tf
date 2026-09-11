@@ -19,10 +19,10 @@ data "aws_ec2_managed_prefix_list" "cloudfront_origin_facing" {
 # actually proves the request came through *our* distribution.
 resource "aws_vpc_security_group_ingress_rule" "alb_sg_ingress_rule" {
   security_group_id = aws_security_group.sg_alb_bonus_b.id
-  prefix_list_id     = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
-  from_port          = 443
-  ip_protocol        = "tcp"
-  to_port            = 443
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
 }
 
 ##############################################

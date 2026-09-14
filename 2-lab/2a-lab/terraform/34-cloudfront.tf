@@ -19,10 +19,10 @@ data "aws_ec2_managed_prefix_list" "cloudfront_origin_facing" {
 # actually proves the request came through *our* distribution.
 resource "aws_vpc_security_group_ingress_rule" "alb_sg_ingress_rule" {
   security_group_id = aws_security_group.sg_alb_bonus_b.id
-  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
-  from_port         = 443
-  ip_protocol       = "tcp"
-  to_port           = 443
+  prefix_list_id     = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
+  from_port          = 443
+  ip_protocol        = "tcp"
+  to_port            = 443
 }
 
 ##############################################
@@ -78,3 +78,81 @@ resource "aws_lb_listener_rule" "origin_header01_listener_rule_catch_all" {
     }
   }
 }
+
+##############################################
+# WAF moves to CloudFront (CLOUDFRONT scope)
+##############################################
+
+### CLOUDFRONT-SCOPE WEB ACL
+# Net-new resource rather than converting waf_bonus_b in place, because
+# WAFv2 `scope` is immutable (ForceNew) - Terraform would destroy and
+# recreate either way. Carries both managed rule groups from the
+# original bonusb-waf01 (Common + KnownBadInputs) so moving enforcement
+# to the edge doesn't lose coverage. Uses the aws.cloudfront aliased
+# provider since CLOUDFRONT-scope Web ACLs must be created via us-east-1.
+resource "aws_wafv2_web_acl" "waf_acl" {
+  provider    = aws.cloudfront
+  name        = "waf_acl_name"
+  description = "waf_acl_description"
+  scope       = "CLOUDFRONT"
+
+  default_action {
+    allow {}
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "visibility_metric_name"
+    sampled_requests_enabled   = true
+  }
+
+  rule {
+    name     = "waf_acl_rule"
+    priority = 0
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "visibility_config_name"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "waf_acl_known_bad_inputs_rule"
+    priority = 1
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "visibility_config_name_bad"
+      sampled_requests_enabled   = true
+    }
+  }
+}
+
+# NOTE: once the CloudFront distribution (next step) references
+# aws_wafv2_web_acl.waf_acl.arn via its web_acl_id argument, delete the
+# old aws_wafv2_web_acl_association.waf_alb_association and
+# aws_wafv2_web_acl.waf_bonus_b resources from 32-waf.tf - WAF no longer
+# belongs on the ALB once CloudFront is the public ingress.

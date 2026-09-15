@@ -19,10 +19,10 @@ data "aws_ec2_managed_prefix_list" "cloudfront_origin_facing" {
 # actually proves the request came through *our* distribution.
 resource "aws_vpc_security_group_ingress_rule" "alb_sg_ingress_rule" {
   security_group_id = aws_security_group.sg_alb_bonus_b.id
-  prefix_list_id     = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
-  from_port          = 443
-  ip_protocol        = "tcp"
-  to_port            = 443
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
 }
 
 ##############################################
@@ -156,3 +156,138 @@ resource "aws_wafv2_web_acl" "waf_acl" {
 # old aws_wafv2_web_acl_association.waf_alb_association and
 # aws_wafv2_web_acl.waf_bonus_b resources from 32-waf.tf - WAF no longer
 # belongs on the ALB once CloudFront is the public ingress.
+
+##############################################
+# ACM certificates
+##############################################
+
+### CLOUDFRONT VIEWER CERT (us-east-1, apex + app subdomain)
+resource "aws_acm_certificate" "viewer_facing_cert" {
+  provider                  = aws.cloudfront
+  domain_name               = "bonusb.online"
+  subject_alternative_names = ["app.bonusb.online"]
+  validation_method         = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "route53_record" {
+  for_each = {
+    for dvo in aws_acm_certificate.viewer_facing_cert.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  zone_id = data.aws_route53_zone.bonusb_online.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  records = [each.value.record]
+  ttl     = 60
+
+  allow_overwrite = true
+}
+
+resource "aws_acm_certificate_validation" "cert_validation" {
+  provider                = aws.cloudfront
+  certificate_arn         = aws_acm_certificate.viewer_facing_cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.route53_record : record.fqdn]
+}
+
+### ALB ORIGIN CERT (default region, app subdomain only)
+resource "aws_acm_certificate" "alb_origin_cert" {
+  domain_name       = "app.bonusb.online"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "alb_origin_record" {
+  for_each = {
+    for dvo in aws_acm_certificate.alb_origin_cert.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  zone_id = data.aws_route53_zone.bonusb_online.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  records = [each.value.record]
+  ttl     = 60
+
+  allow_overwrite = true
+}
+
+resource "aws_acm_certificate_validation" "alb_origin_cert_validated" {
+  certificate_arn         = aws_acm_certificate.alb_origin_cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.alb_origin_record : record.fqdn]
+}
+
+##############################################
+# CloudFront distribution: sole public ingress
+##############################################
+
+resource "aws_cloudfront_distribution" "cf_distribution" {
+  enabled         = true
+  is_ipv6_enabled = true
+  comment         = "cf distribution resorce"
+
+  origin {
+    origin_id   = "origin_id"
+    domain_name = aws_lb.alb_bonus_b.dns_name
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+
+    custom_header {
+      name  = "cloudfront-header-name"
+      value = random_password.secret_header_value.result
+    }
+  }
+
+  default_cache_behavior {
+    target_origin_id       = "origin_id"
+    viewer_protocol_policy = "redirect-to-https"
+
+    allowed_methods = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods  = ["GET", "HEAD"]
+
+    forwarded_values {
+      query_string = true
+      headers      = ["*"]
+      cookies {
+        forward = "all"
+      }
+    }
+  }
+
+  web_acl_id = aws_wafv2_web_acl.waf_acl.arn
+
+  aliases = [
+    "bonusb.online",
+    "app.bonusb.online"
+  ]
+
+  viewer_certificate {
+    acm_certificate_arn      = aws_acm_certificate_validation.cert_validation.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+}

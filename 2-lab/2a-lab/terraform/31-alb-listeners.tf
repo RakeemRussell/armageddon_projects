@@ -27,7 +27,7 @@ resource "aws_lb_listener" "https_forward" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = aws_acm_certificate_validation.alb_cert_validated.certificate_arn
+  certificate_arn   = aws_acm_certificate_validation.alb_origin_cert_validated.certificate_arn
 
   default_action {
     type             = "forward"
@@ -44,8 +44,8 @@ resource "aws_route53_record" "app_alias" {
   type    = "A"
 
   alias {
-    name                   = aws_cloudfront_distribution.bonusb_cf01.domain_name
-    zone_id                = aws_cloudfront_distribution.bonusb_cf01.hosted_zone_id
+    name                   = aws_cloudfront_distribution.cf_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.cf_distribution.hosted_zone_id
     evaluate_target_health = false
   }
 }

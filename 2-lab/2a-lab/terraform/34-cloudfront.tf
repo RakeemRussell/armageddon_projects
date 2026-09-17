@@ -3,6 +3,24 @@
 # Overlay on top of Lab 1c / Bonus-A / Bonus-B
 ##############################################
 
+### IMPORT EXISTING ROUTE53 HOSTED ZONE
+# This zone already exists in AWS (delegated from Namecheap). We are
+# bringing it under Terraform management via `terraform import` rather
+# than creating a new zone, because a new zone would get a different
+# set of AWS nameservers and break the existing delegation - the domain
+# would go offline until Namecheap's Custom DNS settings were manually
+# updated to match. Import keeps the existing zone ID and nameservers
+# untouched; Terraform just starts managing it going forward.
+#
+#   terraform import aws_route53_zone.route_zone_1 <ZONE_ID>
+#
+# After import, `terraform plan` should show no changes. If it shows a
+# diff, adjust this block to match what's actually in AWS before
+# applying - do not let Terraform "fix" a real, working zone.
+resource "aws_route53_zone" "route_zone_1" {
+  name = "bonusb.online"
+}
+
 ### CLOUDFRONT ORIGIN-FACING PREFIX LIST
 # AWS-managed, auto-updated list of IP ranges CloudFront uses to reach
 # origins. Looked up here so the ingress rule below can reference its ID.
@@ -19,10 +37,10 @@ data "aws_ec2_managed_prefix_list" "cloudfront_origin_facing" {
 # actually proves the request came through *our* distribution.
 resource "aws_vpc_security_group_ingress_rule" "alb_sg_ingress_rule" {
   security_group_id = aws_security_group.sg_alb_bonus_b.id
-  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
-  from_port         = 443
-  ip_protocol       = "tcp"
-  to_port           = 443
+  prefix_list_id     = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
+  from_port          = 443
+  ip_protocol        = "tcp"
+  to_port            = 443
 }
 
 ##############################################
@@ -164,9 +182,9 @@ resource "aws_wafv2_web_acl" "waf_acl" {
 ### CLOUDFRONT VIEWER CERT (us-east-1, apex + app subdomain)
 resource "aws_acm_certificate" "viewer_facing_cert" {
   provider                  = aws.cloudfront
-  domain_name               = "bonusb.online"
+  domain_name                = "bonusb.online"
   subject_alternative_names = ["app.bonusb.online"]
-  validation_method         = "DNS"
+  validation_method          = "DNS"
 
   lifecycle {
     create_before_destroy = true
@@ -289,5 +307,23 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
     geo_restriction {
       restriction_type = "none"
     }
+  }
+}
+
+##############################################
+# Route53: apex record to CloudFront
+##############################################
+# app.bonusb.online is already handled by app_alias in 31-alb-listeners.tf
+# (repointed at cf_distribution). This is the missing apex/root record -
+# no bonusb.online record existed before this lab.
+resource "aws_route53_record" "apex_record" {
+  zone_id = data.aws_route53_zone.bonusb_online.zone_id
+  name    = "bonusb.online"
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.cf_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.cf_distribution.hosted_zone_id
+    evaluate_target_health = false
   }
 }

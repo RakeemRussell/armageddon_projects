@@ -1,5 +1,5 @@
 # WAF for the ALB was removed here in Lab 2a. Protection now lives at
-# the CloudFront edge instead: see aws_wafv2_web_acl.waf_cf_bonusb01
+# the CloudFront edge instead: see aws_wafv2_web_acl.waf_acl
 # in 34-cloudfront.tf (CLOUDFRONT scope, both managed rule groups
 # carried over from this file's old bonusb-waf01 for parity).
 #

@@ -3,23 +3,14 @@
 # Overlay on top of Lab 1c / Bonus-A / Bonus-B
 ##############################################
 
-### IMPORT EXISTING ROUTE53 HOSTED ZONE
-# This zone already exists in AWS (delegated from Namecheap). We are
-# bringing it under Terraform management via `terraform import` rather
-# than creating a new zone, because a new zone would get a different
-# set of AWS nameservers and break the existing delegation - the domain
-# would go offline until Namecheap's Custom DNS settings were manually
-# updated to match. Import keeps the existing zone ID and nameservers
-# untouched; Terraform just starts managing it going forward.
-#
-#   terraform import aws_route53_zone.route_zone_1 <ZONE_ID>
-#
-# After import, `terraform plan` should show no changes. If it shows a
-# diff, adjust this block to match what's actually in AWS before
-# applying - do not let Terraform "fix" a real, working zone.
-resource "aws_route53_zone" "route_zone_1" {
-  name = "bonusb.online"
-}
+# NOTE: bonusb.online is looked up read-only via the existing
+# data "aws_route53_zone" "bonusb_online" source (declared in
+# 31-alb-listeners.tf). An earlier attempt at managing this zone as a
+# real Terraform resource (aws_route53_zone.route_zone_1, imported via
+# `terraform import`) was removed after `terraform destroy` tried to
+# delete the real, live hosted zone - which would have broken the
+# domain's nameserver delegation at Namecheap. A `data` source can
+# never be destroyed, so this is the safer long-term approach.
 
 ### CLOUDFRONT ORIGIN-FACING PREFIX LIST
 # AWS-managed, auto-updated list of IP ranges CloudFront uses to reach

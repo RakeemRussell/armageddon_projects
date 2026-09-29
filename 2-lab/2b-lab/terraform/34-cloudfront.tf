@@ -28,10 +28,10 @@ data "aws_ec2_managed_prefix_list" "cloudfront_origin_facing" {
 # actually proves the request came through *our* distribution.
 resource "aws_vpc_security_group_ingress_rule" "alb_sg_ingress_rule" {
   security_group_id = aws_security_group.sg_alb_bonus_b.id
-  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
-  from_port         = 443
-  ip_protocol       = "tcp"
-  to_port           = 443
+  prefix_list_id     = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
+  from_port          = 443
+  ip_protocol        = "tcp"
+  to_port            = 443
 }
 
 ##############################################
@@ -173,9 +173,9 @@ resource "aws_wafv2_web_acl" "waf_acl" {
 ### CLOUDFRONT VIEWER CERT (us-east-1, apex + app subdomain)
 resource "aws_acm_certificate" "viewer_facing_cert" {
   provider                  = aws.cloudfront
-  domain_name               = "bonusb.online"
+  domain_name                = "bonusb.online"
   subject_alternative_names = ["app.bonusb.online"]
-  validation_method         = "DNS"
+  validation_method          = "DNS"
 
   lifecycle {
     create_before_destroy = true
@@ -265,6 +265,11 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
     }
   }
 
+  # Lab 2b: default behavior treated as "API-safe default" - caching
+  # disabled, headers/cookies/query strings forwarded to origin so the
+  # app behaves correctly, but nothing gets cached by default. Replaces
+  # the forwarded_values block from Lab 2a, since cache_policy_id and
+  # origin_request_policy_id cannot coexist with forwarded_values.
   default_cache_behavior {
     target_origin_id       = "origin_id"
     viewer_protocol_policy = "redirect-to-https"
@@ -272,13 +277,24 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
     allowed_methods = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods  = ["GET", "HEAD"]
 
-    forwarded_values {
-      query_string = true
-      headers      = ["*"]
-      cookies {
-        forward = "all"
-      }
-    }
+    cache_policy_id          = aws_cloudfront_cache_policy.cache_api_disabled.id
+    origin_request_policy_id = aws_cloudfront_origin_request_policy.orp_api.id
+  }
+
+  # Lab 2b: /static/* is evaluated before the default behavior above -
+  # aggressive caching, minimal origin forwarding, explicit
+  # Cache-Control header via the response headers policy.
+  ordered_cache_behavior {
+    path_pattern           = "/static/*"
+    target_origin_id       = "origin_id"
+    viewer_protocol_policy = "redirect-to-https"
+
+    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    cached_methods  = ["GET", "HEAD"]
+
+    cache_policy_id             = aws_cloudfront_cache_policy.cache_static.id
+    origin_request_policy_id    = aws_cloudfront_origin_request_policy.orp_static.id
+    response_headers_policy_id  = aws_cloudfront_response_headers_policy.static_cache_control.id
   }
 
   web_acl_id = aws_wafv2_web_acl.waf_acl.arn

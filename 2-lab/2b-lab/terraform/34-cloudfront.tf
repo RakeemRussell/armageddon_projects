@@ -297,6 +297,23 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
     response_headers_policy_id  = aws_cloudfront_response_headers_policy.static_cache_control.id
   }
 
+  # Lab 2b: explicit /api/* behavior, functionally identical to the
+  # default behavior above (same two policies) but added as its own
+  # ordered_cache_behavior so the distribution literally has a
+  # path_pattern = "/api/*" behavior, matching the deliverable's wording
+  # exactly rather than relying on "default behavior = API-safe" alone.
+  ordered_cache_behavior {
+    path_pattern           = "/api/*"
+    target_origin_id       = "origin_id"
+    viewer_protocol_policy = "redirect-to-https"
+
+    allowed_methods = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods  = ["GET", "HEAD"]
+
+    cache_policy_id          = aws_cloudfront_cache_policy.cache_api_disabled.id
+    origin_request_policy_id = aws_cloudfront_origin_request_policy.orp_api.id
+  }
+
   web_acl_id = aws_wafv2_web_acl.waf_acl.arn
 
   aliases = [

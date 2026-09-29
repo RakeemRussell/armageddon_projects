@@ -311,6 +311,21 @@ def list_notes():
     return str(rows)
 
 
+# Lab 2b: /api/list is the same data as /list, just under the /api/*
+# path pattern so CloudFront's API cache behavior (caching disabled)
+# applies to it, instead of falling under /static/* or the default
+# behavior. Reuses list_notes() directly rather than duplicating the
+# query logic.
+@app.route("/api/list")
+def api_list_notes():
+
+    logger.info(
+        "Listing notes via /api/list"
+    )
+
+    return list_notes()
+
+
 
 if __name__ == "__main__":
 
@@ -320,6 +335,12 @@ if __name__ == "__main__":
     )
 
 PY
+
+# Lab 2b: static asset for the /static/* cache behavior to actually
+# cache something real. Flask serves this automatically from a folder
+# named "static" next to app.py - no route code needed.
+mkdir -p /opt/rdsapp/static
+echo "Chewbacca approves this cached response." > /opt/rdsapp/static/example.txt
 
 cat >/etc/systemd/system/rdsapp.service <<'SERVICE'
 [Unit]

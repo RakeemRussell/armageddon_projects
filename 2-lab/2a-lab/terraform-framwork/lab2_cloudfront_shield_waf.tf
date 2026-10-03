@@ -3,8 +3,6 @@ resource "aws_wafv2_web_acl" "chewbacca_cf_waf01" {
   name  = "${var.project_name}-cf-waf01"
   scope = "CLOUDFRONT"
 
-  default_action { allow {} }
-
   visibility_config {
     cloudwatch_metrics_enabled = true
     metric_name                = "${var.project_name}-cf-waf01"
